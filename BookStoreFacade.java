@@ -78,7 +78,9 @@ public class BookStoreFacade {
     }
     
     public List<OrderItem> getCartItems(Customer customer) {
-        return customer.getCart().getItems();
+    System.out.println("DEBUG Facade: Getting cart for " + customer.getUsername());
+    System.out.println("DEBUG Facade: Cart size = " + customer.getCart().getItems().size());
+    return customer.getCart().getItems();
     }
     
     // ============== ORDER MANAGEMENT (Customer) ==============

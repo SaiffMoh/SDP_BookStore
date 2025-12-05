@@ -1,4 +1,4 @@
-// ShoppingCart.java
+// ShoppingCart.java - FIXED
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +10,14 @@ public class ShoppingCart {
     }
 
     public void addItem(Book book, int quantity) {
+        // Check if book with same ID already exists
         for (OrderItem item : items) {
             if (item.getBook().getId().equals(book.getId())) {
                 item.setQuantity(item.getQuantity() + quantity);
                 return;
             }
         }
+        // Add new item - create OrderItem that captures current book state
         items.add(new OrderItem(book, quantity));
     }
 
@@ -41,12 +43,13 @@ public class ShoppingCart {
     }
 
     public List<OrderItem> getItems() {
+        // Return a copy of the list
         return new ArrayList<>(items);
     }
 
     public double getTotal() {
         return items.stream()
-                .mapToDouble(item -> item.getBook().getPrice() * item.getQuantity())
+                .mapToDouble(OrderItem::getSubtotal)
                 .sum();
     }
 

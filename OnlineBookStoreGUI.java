@@ -1,6 +1,7 @@
 // OnlineBookStoreGUI.java
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class OnlineBookStoreGUI extends JFrame {
     private BookStoreFacade facade;
@@ -183,10 +184,28 @@ public class OnlineBookStoreGUI extends JFrame {
         dashboard.add(topPanel, BorderLayout.NORTH);
 
         JTabbedPane tabbedPane = new JTabbedPane();
+        
+        // Store references to panels that need refreshing
+        JPanel[] cartPanelHolder = new JPanel[1];
+        JPanel[] ordersPanelHolder = new JPanel[1];
+        
         tabbedPane.addTab("Browse Books", createBrowseBooksPanel(customer));
-        tabbedPane.addTab("Shopping Cart", createCartPanel(customer));
-        tabbedPane.addTab("My Orders", createOrdersPanel(customer));
+        cartPanelHolder[0] = createCartPanel(customer);
+        tabbedPane.addTab("Shopping Cart", cartPanelHolder[0]);
+        ordersPanelHolder[0] = createOrdersPanel(customer);
+        tabbedPane.addTab("My Orders", ordersPanelHolder[0]);
         tabbedPane.addTab("Account", createAccountPanel(customer));
+
+        // Add listener to refresh cart when tab is selected
+        tabbedPane.addChangeListener(e -> {
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            if (selectedIndex == 1) { // Shopping Cart tab
+                System.out.println("DEBUG: Switching to cart tab, refreshing...");
+                tabbedPane.setComponentAt(1, createCartPanel(customer));
+            } else if (selectedIndex == 2) { // My Orders tab
+                tabbedPane.setComponentAt(2, createOrdersPanel(customer));
+            }
+        });
 
         dashboard.add(tabbedPane, BorderLayout.CENTER);
 
@@ -440,43 +459,54 @@ public class OnlineBookStoreGUI extends JFrame {
         Runnable updateCart = () -> {
             cartItemsPanel.removeAll();
             
-            for (OrderItem item : facade.getCartItems(customer)) {
-                JPanel itemPanel = new JPanel(new BorderLayout(10, 10));
-                itemPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-                itemPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+            List<OrderItem> cartItems = facade.getCartItems(customer);
+            System.out.println("DEBUG: Cart has " + cartItems.size() + " items"); // DEBUG
+            
+            if (cartItems.isEmpty()) {
+                JLabel emptyLabel = new JLabel("Your cart is empty");
+                emptyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+                cartItemsPanel.add(emptyLabel);
+            } else {
+                for (OrderItem item : cartItems) {
+                    System.out.println("DEBUG: Item - " + item.getBook().getTitle()); // DEBUG
+                    
+                    JPanel itemPanel = new JPanel(new BorderLayout(10, 10));
+                    itemPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                    itemPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
-                JLabel itemLabel = new JLabel("<html><b>" + item.getBook().getTitle() + 
-                        "</b><br>Price: $" + String.format("%.2f", item.getBook().getPrice()) + 
-                        " x " + item.getQuantity() + 
-                        " = $" + String.format("%.2f", item.getSubtotal()) + "</html>");
-                itemPanel.add(itemLabel, BorderLayout.CENTER);
+                    JLabel itemLabel = new JLabel("<html><b>" + item.getBook().getTitle() + 
+                            "</b><br>Price: $" + String.format("%.2f", item.getPriceAtPurchase()) + 
+                            " x " + item.getQuantity() + 
+                            " = $" + String.format("%.2f", item.getSubtotal()) + "</html>");
+                    itemPanel.add(itemLabel, BorderLayout.CENTER);
 
-                JPanel controlPanel = new JPanel(new FlowLayout());
-                JSpinner quantitySpinner = new JSpinner(
-                        new SpinnerNumberModel(item.getQuantity(), 1, item.getBook().getStock(), 1));
-                JButton updateBtn = new JButton("Update");
-                JButton removeBtn = new JButton("Remove");
-                removeBtn.setBackground(new Color(231, 76, 60));
-                removeBtn.setForeground(Color.WHITE);
+                    JPanel controlPanel = new JPanel(new FlowLayout());
+                    JSpinner quantitySpinner = new JSpinner(
+                            new SpinnerNumberModel(item.getQuantity(), 1, item.getBook().getStock(), 1));
+                    JButton updateBtn = new JButton("Update");
+                    JButton removeBtn = new JButton("Remove");
+                    removeBtn.setBackground(new Color(231, 76, 60));
+                    removeBtn.setForeground(Color.WHITE);
 
-                updateBtn.addActionListener(e -> {
-                    int newQuantity = (Integer) quantitySpinner.getValue();
-                    facade.updateCartQuantity(customer, item.getBook().getId(), newQuantity);
-                    updateCartWrapper[0].run();
-                });
+                    updateBtn.addActionListener(e -> {
+                        int newQuantity = (Integer) quantitySpinner.getValue();
+                        facade.updateCartQuantity(customer, item.getBook().getId(), newQuantity);
+                        updateCartWrapper[0].run();
+                    });
 
-                removeBtn.addActionListener(e -> {
-                    facade.removeFromCart(customer, item.getBook().getId());
-                    updateCartWrapper[0].run();
-                });
+                    removeBtn.addActionListener(e -> {
+                        facade.removeFromCart(customer, item.getBook().getId());
+                        updateCartWrapper[0].run();
+                    });
 
-                controlPanel.add(new JLabel("Qty:"));
-                controlPanel.add(quantitySpinner);
-                controlPanel.add(updateBtn);
-                controlPanel.add(removeBtn);
-                itemPanel.add(controlPanel, BorderLayout.EAST);
+                    controlPanel.add(new JLabel("Qty:"));
+                    controlPanel.add(quantitySpinner);
+                    controlPanel.add(updateBtn);
+                    controlPanel.add(removeBtn);
+                    itemPanel.add(controlPanel, BorderLayout.EAST);
 
-                cartItemsPanel.add(itemPanel);
+                    cartItemsPanel.add(itemPanel);
+                }
             }
 
             totalLabel.setText("Total: $" + String.format("%.2f", facade.getCartTotal(customer)));
