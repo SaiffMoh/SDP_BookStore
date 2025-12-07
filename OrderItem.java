@@ -1,17 +1,34 @@
 // OrderItem.java
 public class OrderItem {
-    private Book book;
+    private String bookId; // Store book ID instead of Book object
+    private String bookTitle;
     private int quantity;
     private double priceAtPurchase;
 
     public OrderItem(Book book, int quantity) {
-        this.book = book;
+        this.bookId = book.getId();
+        this.bookTitle = book.getTitle();
         this.quantity = quantity;
         this.priceAtPurchase = book.getPrice();
     }
+    
+    // Default constructor for JSON
+    public OrderItem() {
+    }
 
-    public Book getBook() { return book; }
-    public void setBook(Book book) { this.book = book; }
+    // Helper method to get Book object (used by GUI)
+    public Book getBook() {
+        Book book = BookStoreSystem.getInstance().getBookById(bookId);
+        if (book == null) {
+            // Create a temporary book if original is deleted
+            BasicBook tempBook = new BasicBook();
+            tempBook.setId(bookId);
+            tempBook.setTitle(bookTitle);
+            tempBook.setPrice(priceAtPurchase);
+            return tempBook;
+        }
+        return book;
+    }
     
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
@@ -24,7 +41,7 @@ public class OrderItem {
 
     @Override
     public String toString() {
-        return book.getTitle() + " x " + quantity + " = $" + 
+        return bookTitle + " x " + quantity + " = $" + 
                String.format("%.2f", getSubtotal());
     }
 }

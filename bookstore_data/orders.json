@@ -1,0 +1,29 @@
+[
+  {
+    "orderId": "ORD1000",
+    "customerUsername": "saif",
+    "items": [
+      {
+        "bookId": "B001",
+        "bookTitle": "Clean Code",
+        "quantity": 1,
+        "priceAtPurchase": 39.0915
+      },
+      {
+        "bookId": "B002",
+        "bookTitle": "Design Patterns",
+        "quantity": 1,
+        "priceAtPurchase": 49.95
+      },
+      {
+        "bookId": "B003",
+        "bookTitle": "Sapiens",
+        "quantity": 1,
+        "priceAtPurchase": 30.0
+      }
+    ],
+    "totalAmount": 119.04150000000001,
+    "status": "SHIPPED",
+    "orderDate": "2025-12-07T13:28:56.2608475"
+  }
+]

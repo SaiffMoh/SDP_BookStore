@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Order {
     private String orderId;
-    private Customer customer;
+    private String customerUsername; // Store username instead of Customer object
     private List<OrderItem> items;
     private double totalAmount;
     private String status;
@@ -13,15 +13,27 @@ public class Order {
 
     public Order(String orderId, Customer customer) {
         this.orderId = orderId;
-        this.customer = customer;
+        this.customerUsername = customer.getUsername();
         this.items = new ArrayList<>();
         this.status = "PENDING";
+        this.orderDate = LocalDateTime.now();
+    }
+    
+    // Default constructor for JSON
+    public Order() {
+        this.items = new ArrayList<>();
         this.orderDate = LocalDateTime.now();
     }
 
     public String getOrderId() { return orderId; }
     
-    public Customer getCustomer() { return customer; }
+    public String getCustomerUsername() { return customerUsername; }
+    
+    // Helper method to get Customer object (used by GUI)
+    public Customer getCustomer() {
+        // This will be resolved by BookStoreSystem
+        return BookStoreSystem.getInstance().getCustomerByUsername(customerUsername);
+    }
     
     public List<OrderItem> getItems() { return new ArrayList<>(items); }
     
@@ -47,7 +59,7 @@ public class Order {
     public String toString() {
         return "Order{" +
                 "orderId='" + orderId + '\'' +
-                ", customer=" + customer.getUsername() +
+                ", customer=" + customerUsername +
                 ", totalAmount=" + totalAmount +
                 ", status='" + status + '\'' +
                 ", orderDate=" + orderDate +

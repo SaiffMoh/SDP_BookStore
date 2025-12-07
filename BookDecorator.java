@@ -1,5 +1,4 @@
-// BookDecorator.java - DECORATOR PATTERN (Abstract Decorator)
-// Based on Lecture 4 - Decorator Pattern
+// BookDecorator.java - Abstract Decorator
 public abstract class BookDecorator implements Book {
     protected Book decoratedBook;
 
@@ -63,6 +62,9 @@ public abstract class BookDecorator implements Book {
     
     @Override
     public void incrementPopularity() { decoratedBook.incrementPopularity(); }
+    
+    @Override
+    public BasicBook getBaseBook() { return decoratedBook.getBaseBook(); }
     
     @Override
     public abstract double getPrice();

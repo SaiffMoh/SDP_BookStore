@@ -7,6 +7,10 @@ public class Admin implements User {
         this.username = username;
         this.password = password;
     }
+    
+    // Default constructor for JSON
+    public Admin() {
+    }
 
     @Override
     public String getUsername() { return username; }

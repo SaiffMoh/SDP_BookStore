@@ -1,5 +1,4 @@
-// DiscountedBook.java - DECORATOR PATTERN (Concrete Decorator)
-// Based on Lecture 4 - Decorator Pattern
+// DiscountedBook.java - Concrete Decorator (no changes)
 public class DiscountedBook extends BookDecorator {
     private double discountPercentage;
 

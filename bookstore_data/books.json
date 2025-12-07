@@ -1,0 +1,57 @@
+[
+  {
+    "id": "B001",
+    "title": "Clean Code",
+    "author": "Robert Martin",
+    "price": 45.99,
+    "category": "IT",
+    "stock": 19,
+    "edition": "1st Edition",
+    "coverImage": "clean_code.jpg",
+    "popularity": 1
+  },
+  {
+    "id": "B002",
+    "title": "Design Patterns",
+    "author": "Gang of Four",
+    "price": 55.5,
+    "category": "IT",
+    "stock": 14,
+    "edition": "1st Edition",
+    "coverImage": "design_patterns.jpg",
+    "popularity": 1
+  },
+  {
+    "id": "B003",
+    "title": "Sapiens",
+    "author": "Yuval Harari",
+    "price": 30.0,
+    "category": "History",
+    "stock": 24,
+    "edition": "2nd Edition",
+    "coverImage": "sapiens.jpg",
+    "popularity": 1
+  },
+  {
+    "id": "B004",
+    "title": "1984",
+    "author": "George Orwell",
+    "price": 20.0,
+    "category": "Classics",
+    "stock": 30,
+    "edition": "3rd Edition",
+    "coverImage": "1984.jpg",
+    "popularity": 0
+  },
+  {
+    "id": "B005",
+    "title": "The Selfish Gene",
+    "author": "Richard Dawkins",
+    "price": 35.0,
+    "category": "Science",
+    "stock": 18,
+    "edition": "1st Edition",
+    "coverImage": "selfish_gene.jpg",
+    "popularity": 0
+  }
+]

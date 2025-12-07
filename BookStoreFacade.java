@@ -1,5 +1,4 @@
-// BookStoreFacade.java - FACADE PATTERN
-// Based on Lecture 6 - Facade Pattern
+// BookStoreFacade.java - FACADE PATTERN with Auto-Save
 import java.util.*;
 
 public class BookStoreFacade {
@@ -24,6 +23,7 @@ public class BookStoreFacade {
     public void updateCustomerInfo(Customer customer, String address, String phone) {
         customer.setAddress(address);
         customer.setPhone(phone);
+        bookStore.saveAllData();
     }
     
     // ============== BOOK BROWSING (Customer) ==============
@@ -59,6 +59,7 @@ public class BookStoreFacade {
             throw new IllegalArgumentException("Not enough stock available");
         }
         customer.getCart().addItem(book, quantity);
+        // No save needed - cart is transient
     }
     
     public void removeFromCart(Customer customer, String bookId) {
@@ -78,9 +79,7 @@ public class BookStoreFacade {
     }
     
     public List<OrderItem> getCartItems(Customer customer) {
-    System.out.println("DEBUG Facade: Getting cart for " + customer.getUsername());
-    System.out.println("DEBUG Facade: Cart size = " + customer.getCart().getItems().size());
-    return customer.getCart().getItems();
+        return customer.getCart().getItems();
     }
     
     // ============== ORDER MANAGEMENT (Customer) ==============
@@ -103,6 +102,7 @@ public class BookStoreFacade {
         bookStore.addOrder(order);
         customer.addOrder(order);
         customer.getCart().clear();
+        bookStore.saveAllData();
         
         return order;
     }
@@ -114,8 +114,11 @@ public class BookStoreFacade {
             
             for (OrderItem item : order.getItems()) {
                 Book book = item.getBook();
-                book.setStock(book.getStock() + item.getQuantity());
+                if (book != null) {
+                    book.setStock(book.getStock() + item.getQuantity());
+                }
             }
+            bookStore.saveAllData();
         }
     }
     
@@ -133,6 +136,7 @@ public class BookStoreFacade {
         Review review = new Review(bookId, customer.getUsername(), rating, comment);
         customer.addReview(review);
         bookStore.addReview(review);
+        bookStore.saveAllData();
     }
     
     public List<Review> getBookReviews(String bookId) {
@@ -163,6 +167,7 @@ public class BookStoreFacade {
         Book book = bookStore.getBookById(bookId);
         if (book != null) {
             book.setStock(newStock);
+            bookStore.saveAllData();
         }
     }
     
@@ -182,54 +187,60 @@ public class BookStoreFacade {
         return bookStore.getAllOrders();
     }
     
-    public List<Order> getPendingOrders(){
-return bookStore.getPendingOrders();
-}
-public void confirmOrder(String orderId) {
-    Order order = bookStore.getOrderById(orderId);
-    if (order != null) {
-        order.setStatus("CONFIRMED");
+    public List<Order> getPendingOrders() {
+        return bookStore.getPendingOrders();
     }
-}
-
-public void shipOrder(String orderId) {
-    Order order = bookStore.getOrderById(orderId);
-    if (order != null && order.getStatus().equals("CONFIRMED")) {
-        order.setStatus("SHIPPED");
-    }
-}
-
-public void cancelOrderByAdmin(String orderId) {
-    Order order = bookStore.getOrderById(orderId);
-    if (order != null && order.getStatus().equals("PENDING")) {
-        order.setStatus("CANCELLED");
-        
-        for (OrderItem item : order.getItems()) {
-            Book book = item.getBook();
-            book.setStock(book.getStock() + item.getQuantity());
+    
+    public void confirmOrder(String orderId) {
+        Order order = bookStore.getOrderById(orderId);
+        if (order != null) {
+            order.setStatus("CONFIRMED");
+            bookStore.saveAllData();
         }
     }
-}
-
-// ============== STATISTICS (Admin) ==============
-
-public Map<String, Integer> getCategorySalesStatistics() {
-    return bookStore.getCategorySalesStatistics();
-}
-
-public List<Book> getTopSellingBooks(int limit) {
-    return bookStore.getTopSellingBooks(limit);
-}
-
-public double getTotalRevenue() {
-    return bookStore.getTotalRevenue();
-}
-
-public int getTotalOrdersCount() {
-    return bookStore.getAllOrders().size();
-}
-
-public List<User> getAllCustomers() {
-    return bookStore.getAllCustomers();
-}
+    
+    public void shipOrder(String orderId) {
+        Order order = bookStore.getOrderById(orderId);
+        if (order != null && order.getStatus().equals("CONFIRMED")) {
+            order.setStatus("SHIPPED");
+            bookStore.saveAllData();
+        }
+    }
+    
+    public void cancelOrderByAdmin(String orderId) {
+        Order order = bookStore.getOrderById(orderId);
+        if (order != null && order.getStatus().equals("PENDING")) {
+            order.setStatus("CANCELLED");
+            
+            for (OrderItem item : order.getItems()) {
+                Book book = item.getBook();
+                if (book != null) {
+                    book.setStock(book.getStock() + item.getQuantity());
+                }
+            }
+            bookStore.saveAllData();
+        }
+    }
+    
+    // ============== STATISTICS (Admin) ==============
+    
+    public Map<String, Integer> getCategorySalesStatistics() {
+        return bookStore.getCategorySalesStatistics();
+    }
+    
+    public List<Book> getTopSellingBooks(int limit) {
+        return bookStore.getTopSellingBooks(limit);
+    }
+    
+    public double getTotalRevenue() {
+        return bookStore.getTotalRevenue();
+    }
+    
+    public int getTotalOrdersCount() {
+        return bookStore.getAllOrders().size();
+    }
+    
+    public List<User> getAllCustomers() {
+        return bookStore.getAllCustomers();
+    }
 }

@@ -7,7 +7,7 @@ public class Customer implements User {
     private String password;
     private String address;
     private String phone;
-    private ShoppingCart cart;
+    private transient ShoppingCart cart; // transient = don't save to JSON
     private List<Order> orderHistory;
     private List<Review> reviews;
 
@@ -16,6 +16,13 @@ public class Customer implements User {
         this.password = password;
         this.address = address;
         this.phone = phone;
+        this.cart = new ShoppingCart();
+        this.orderHistory = new ArrayList<>();
+        this.reviews = new ArrayList<>();
+    }
+    
+    // Default constructor for JSON
+    public Customer() {
         this.cart = new ShoppingCart();
         this.orderHistory = new ArrayList<>();
         this.reviews = new ArrayList<>();
@@ -36,7 +43,12 @@ public class Customer implements User {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     
-    public ShoppingCart getCart() { return cart; }
+    public ShoppingCart getCart() { 
+        if (cart == null) {
+            cart = new ShoppingCart();
+        }
+        return cart; 
+    }
     
     public List<Order> getOrderHistory() { return orderHistory; }
     

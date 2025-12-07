@@ -15,6 +15,11 @@ public class Review {
         this.comment = comment;
         this.reviewDate = LocalDateTime.now();
     }
+    
+    // Default constructor for JSON
+    public Review() {
+        this.reviewDate = LocalDateTime.now();
+    }
 
     public String getBookId() { return bookId; }
     public String getCustomerUsername() { return customerUsername; }

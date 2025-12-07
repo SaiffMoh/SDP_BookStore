@@ -1,5 +1,4 @@
-// Book.java - DECORATOR PATTERN (Component Interface)
-// Based on Lecture 4 - Decorator Pattern
+// Book.java - Interface for Decorator Pattern
 public interface Book {
     String getId();
     String getTitle();
@@ -25,4 +24,7 @@ public interface Book {
     void setCoverImage(String coverImage);
     void setPopularity(int popularity);
     void incrementPopularity();
+    
+    // Add method to get the base book for JSON serialization
+    BasicBook getBaseBook();
 }

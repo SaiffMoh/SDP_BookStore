@@ -12,6 +12,13 @@ public class OnlineBookStoreGUI extends JFrame {
     public OnlineBookStoreGUI() {
         facade = new BookStoreFacade();
         
+        // Add shutdown hook to save data when application closes
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n========== Application Closing ==========");
+            BookStoreSystem.getInstance().saveAllData();
+            System.out.println("Goodbye!");
+        }));
+
         setTitle("Online Book Store");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

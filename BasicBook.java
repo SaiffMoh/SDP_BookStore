@@ -1,5 +1,4 @@
-// BasicBook.java - DECORATOR PATTERN (Concrete Component)
-// Based on Lecture 4 - Decorator Pattern
+// BasicBook.java - Concrete Component for Decorator
 public class BasicBook implements Book {
     private String id;
     private String title;
@@ -21,6 +20,11 @@ public class BasicBook implements Book {
         this.stock = stock;
         this.edition = edition;
         this.coverImage = coverImage;
+        this.popularity = 0;
+    }
+    
+    // Default constructor for JSON deserialization
+    public BasicBook() {
         this.popularity = 0;
     }
 
@@ -92,6 +96,9 @@ public class BasicBook implements Book {
     
     @Override
     public double getDiscountPercentage() { return 0.0; }
+    
+    @Override
+    public BasicBook getBaseBook() { return this; }
 
     @Override
     public String toString() {
