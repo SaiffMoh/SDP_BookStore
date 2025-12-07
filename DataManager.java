@@ -43,9 +43,35 @@ public class DataManager {
     // ============== SAVE METHODS ==============
 
     public void saveUsers(List<User> users) {
+        // Convert User objects into serializable UserData objects that include userType
+        List<UserData> userDataList = new ArrayList<>();
+        for (User u : users) {
+            UserData ud = new UserData();
+            ud.username = u.getUsername();
+            ud.password = u.getPassword();
+            ud.userType = u.getUserType();
+
+            if (u instanceof Customer) {
+                Customer c = (Customer) u;
+                ud.address = c.getAddress();
+                ud.phone = c.getPhone();
+                ud.orderHistory = new ArrayList<>(c.getOrderHistory());
+                ud.reviews = new ArrayList<>(c.getReviews());
+            } else if (u instanceof Admin) {
+                // Admin has no extra fields for now; keep empty lists to preserve structure
+                ud.orderHistory = new ArrayList<>();
+                ud.reviews = new ArrayList<>();
+            } else {
+                // Unknown user type: attempt to preserve minimal info
+                ud.orderHistory = new ArrayList<>();
+                ud.reviews = new ArrayList<>();
+            }
+            userDataList.add(ud);
+        }
+
         try (Writer writer = new FileWriter(USERS_FILE)) {
-            gson.toJson(users, writer);
-            System.out.println("✓ Saved " + users.size() + " users");
+            gson.toJson(userDataList, writer);
+            System.out.println("✓ Saved " + userDataList.size() + " users");
         } catch (IOException e) {
             System.err.println("✗ Error saving users: " + e.getMessage());
         }
@@ -117,7 +143,27 @@ public class DataManager {
             
             List<User> users = new ArrayList<>();
             for (UserData data : userData) {
-                if ("ADMIN".equals(data.userType)) {
+                String type = data.userType;
+
+                // If userType is missing (old files), try to infer: common default admin username
+                if (type == null) {
+                    if (data.username != null && data.username.equalsIgnoreCase("admin")) {
+                        type = "ADMIN";
+                        System.out.println("⚠ Infering userType=ADMIN for username '" + data.username + "'");
+                    } else if ((data.address == null || data.address.isEmpty()) &&
+                               (data.phone == null || data.phone.isEmpty()) &&
+                               (data.orderHistory == null || data.orderHistory.isEmpty()) &&
+                               (data.reviews == null || data.reviews.isEmpty())) {
+                        // Heuristic: no customer-specific data -> treat as ADMIN
+                        type = "ADMIN";
+                        System.out.println("⚠ Infering userType=ADMIN for username '" + data.username + "' (no customer fields)");
+                    } else {
+                        type = "CUSTOMER";
+                        System.out.println("⚠ Infering userType=CUSTOMER for username '" + data.username + "'");
+                    }
+                }
+
+                if ("ADMIN".equals(type)) {
                     users.add(new Admin(data.username, data.password));
                 } else {
                     Customer customer = new Customer(data.username, data.password, 
