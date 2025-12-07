@@ -38,10 +38,10 @@
     "author": "George Orwell",
     "price": 20.0,
     "category": "Classics",
-    "stock": 30,
+    "stock": 29,
     "edition": "3rd Edition",
     "coverImage": "1984.jpg",
-    "popularity": 0
+    "popularity": 1
   },
   {
     "id": "B005",
@@ -49,9 +49,9 @@
     "author": "Richard Dawkins",
     "price": 35.0,
     "category": "Science",
-    "stock": 18,
+    "stock": 17,
     "edition": "1st Edition",
     "coverImage": "selfish_gene.jpg",
-    "popularity": 0
+    "popularity": 1
   }
 ]

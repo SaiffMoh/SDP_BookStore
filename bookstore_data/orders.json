@@ -25,5 +25,26 @@
     "totalAmount": 119.04150000000001,
     "status": "SHIPPED",
     "orderDate": "2025-12-07T13:28:56.2608475"
+  },
+  {
+    "orderId": "ORD1001",
+    "customerUsername": "khaled",
+    "items": [
+      {
+        "bookId": "B005",
+        "bookTitle": "The Selfish Gene",
+        "quantity": 1,
+        "priceAtPurchase": 35.0
+      },
+      {
+        "bookId": "B004",
+        "bookTitle": "1984",
+        "quantity": 1,
+        "priceAtPurchase": 20.0
+      }
+    ],
+    "totalAmount": 55.0,
+    "status": "SHIPPED",
+    "orderDate": "2025-12-07T15:06:41.4987407"
   }
 ]

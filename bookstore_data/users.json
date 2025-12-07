@@ -1,11 +1,15 @@
 [
   {
     "username": "admin",
-    "password": "admin123"
+    "password": "admin123",
+    "userType": "ADMIN",
+    "orderHistory": [],
+    "reviews": []
   },
   {
     "username": "saif",
     "password": "saif123",
+    "userType": "CUSTOMER",
     "address": "1",
     "phone": "01276795505",
     "orderHistory": [
@@ -35,6 +39,37 @@
         "totalAmount": 119.04150000000001,
         "status": "SHIPPED",
         "orderDate": "2025-12-07T13:28:56.2608475"
+      }
+    ],
+    "reviews": []
+  },
+  {
+    "username": "khaled",
+    "password": "1234",
+    "userType": "CUSTOMER",
+    "address": "1",
+    "phone": "2",
+    "orderHistory": [
+      {
+        "orderId": "ORD1001",
+        "customerUsername": "khaled",
+        "items": [
+          {
+            "bookId": "B005",
+            "bookTitle": "The Selfish Gene",
+            "quantity": 1,
+            "priceAtPurchase": 35.0
+          },
+          {
+            "bookId": "B004",
+            "bookTitle": "1984",
+            "quantity": 1,
+            "priceAtPurchase": 20.0
+          }
+        ],
+        "totalAmount": 55.0,
+        "status": "SHIPPED",
+        "orderDate": "2025-12-07T15:06:41.4987407"
       }
     ],
     "reviews": []
