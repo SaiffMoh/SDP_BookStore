@@ -79,9 +79,12 @@ public class DataManager {
 
     public void saveBooks(List<Book> books) {
         // Convert decorated books to BasicBook for JSON storage
+        // Preserve decorator information in BasicBook fields
         List<BasicBook> basicBooks = new ArrayList<>();
         for (Book book : books) {
-            basicBooks.add(book.getBaseBook());
+            BasicBook baseBook = book.getBaseBook();
+            // Decorator state is already in the base book fields, just save it
+            basicBooks.add(baseBook);
         }
         
         try (Writer writer = new FileWriter(BOOKS_FILE)) {

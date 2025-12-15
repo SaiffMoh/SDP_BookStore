@@ -9,6 +9,8 @@ public class BasicBook implements Book {
     private String edition;
     private String coverImage;
     private int popularity;
+    private boolean featured;
+    private double discountPercentage;
 
     public BasicBook(String id, String title, String author, double price, 
                      String category, int stock, String edition, String coverImage) {
@@ -21,11 +23,15 @@ public class BasicBook implements Book {
         this.edition = edition;
         this.coverImage = coverImage;
         this.popularity = 0;
+        this.featured = false;
+        this.discountPercentage = 0.0;
     }
     
     // Default constructor for JSON deserialization
     public BasicBook() {
         this.popularity = 0;
+        this.featured = false;
+        this.discountPercentage = 0.0;
     }
 
     @Override
@@ -47,10 +53,17 @@ public class BasicBook implements Book {
     public void setAuthor(String author) { this.author = author; }
     
     @Override
-    public double getPrice() { return price; }
+    public double getPrice() { 
+        if (discountPercentage > 0) {
+            return price * (1 - discountPercentage);
+        }
+        return price; 
+    }
     
     @Override
-    public double getOriginalPrice() { return price; }
+    public double getOriginalPrice() { 
+        return price; // Always return base price, not discounted
+    }
     
     @Override
     public void setPrice(double price) { this.price = price; }
@@ -89,13 +102,19 @@ public class BasicBook implements Book {
     public void incrementPopularity() { this.popularity++; }
     
     @Override
-    public boolean isFeatured() { return false; }
+    public boolean isFeatured() { return featured; }
+    
+    public void setFeatured(boolean featured) { this.featured = featured; }
     
     @Override
-    public boolean isDiscounted() { return false; }
+    public boolean isDiscounted() { return discountPercentage > 0; }
     
     @Override
-    public double getDiscountPercentage() { return 0.0; }
+    public double getDiscountPercentage() { return discountPercentage * 100; }
+    
+    public void setDiscountPercentage(double discountPercentage) { 
+        this.discountPercentage = discountPercentage; 
+    }
     
     @Override
     public BasicBook getBaseBook() { return this; }

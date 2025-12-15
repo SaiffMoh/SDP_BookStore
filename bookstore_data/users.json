@@ -8,10 +8,10 @@
   },
   {
     "username": "saif",
-    "password": "saif123",
+    "password": "saif",
     "userType": "CUSTOMER",
-    "address": "1",
-    "phone": "01276795505",
+    "address": "",
+    "phone": "",
     "orderHistory": [
       {
         "orderId": "ORD1000",
@@ -20,58 +20,39 @@
           {
             "bookId": "B001",
             "bookTitle": "Clean Code",
-            "quantity": 1,
-            "priceAtPurchase": 39.0915
-          },
-          {
-            "bookId": "B002",
-            "bookTitle": "Design Patterns",
-            "quantity": 1,
-            "priceAtPurchase": 49.95
-          },
-          {
-            "bookId": "B003",
-            "bookTitle": "Sapiens",
-            "quantity": 1,
-            "priceAtPurchase": 30.0
+            "quantity": 2,
+            "priceAtPurchase": 45.99
           }
         ],
-        "totalAmount": 119.04150000000001,
-        "status": "SHIPPED",
-        "orderDate": "2025-12-07T13:28:56.2608475"
+        "totalAmount": 91.98,
+        "status": "PENDING",
+        "orderDate": "2025-12-15T22:21:08.7080684"
+      },
+      {
+        "orderId": "ORD1001",
+        "customerUsername": "saif",
+        "items": [
+          {
+            "bookId": "1234",
+            "bookTitle": "q",
+            "quantity": 1,
+            "priceAtPurchase": 72.0
+          }
+        ],
+        "totalAmount": 72.0,
+        "status": "PENDING",
+        "orderDate": "2025-12-15T22:33:46.8123765"
       }
     ],
     "reviews": []
   },
   {
-    "username": "khaled",
-    "password": "1234",
+    "username": "saif",
+    "password": "saif",
     "userType": "CUSTOMER",
-    "address": "1",
-    "phone": "2",
-    "orderHistory": [
-      {
-        "orderId": "ORD1001",
-        "customerUsername": "khaled",
-        "items": [
-          {
-            "bookId": "B005",
-            "bookTitle": "The Selfish Gene",
-            "quantity": 1,
-            "priceAtPurchase": 35.0
-          },
-          {
-            "bookId": "B004",
-            "bookTitle": "1984",
-            "quantity": 1,
-            "priceAtPurchase": 20.0
-          }
-        ],
-        "totalAmount": 55.0,
-        "status": "SHIPPED",
-        "orderDate": "2025-12-07T15:06:41.4987407"
-      }
-    ],
+    "address": "a",
+    "phone": "121",
+    "orderHistory": [],
     "reviews": []
   }
 ]
