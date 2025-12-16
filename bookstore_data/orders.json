@@ -11,7 +11,7 @@
       }
     ],
     "totalAmount": 91.98,
-    "status": "PENDING",
+    "status": "CANCELLED",
     "orderDate": "2025-12-15T22:21:08.7080684"
   },
   {
@@ -26,7 +26,22 @@
       }
     ],
     "totalAmount": 72.0,
-    "status": "PENDING",
+    "status": "CANCELLED",
     "orderDate": "2025-12-15T22:33:46.8123765"
+  },
+  {
+    "orderId": "ORD1002",
+    "customerUsername": "saif",
+    "items": [
+      {
+        "bookId": "12345",
+        "bookTitle": "Saif",
+        "quantity": 1,
+        "priceAtPurchase": 987.2
+      }
+    ],
+    "totalAmount": 987.2,
+    "status": "CANCELLED",
+    "orderDate": "2025-12-16T23:14:38.6094986"
   }
 ]

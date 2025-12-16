@@ -5,6 +5,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.animation.*;
@@ -365,8 +371,31 @@ public class OnlineBookStoreFX extends Application {
         card.getStyleClass().add("book-card");
         card.setPrefWidth(220);
         card.setMaxWidth(220);
-        card.setMinHeight(450);
+        card.setMinHeight(520);
         card.setPadding(new Insets(20));
+
+        // Book cover image
+        ImageView coverImage = new ImageView();
+        coverImage.setFitWidth(180);
+        coverImage.setFitHeight(240);
+        coverImage.setPreserveRatio(true);
+        coverImage.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 8;");
+        
+        try {
+            String imagePath = "file:bookstore_data/images/" + book.getCoverImage();
+            Image image = new Image(imagePath, true);
+            if (!image.isError()) {
+                coverImage.setImage(image);
+            } else {
+                // Use placeholder if image not found
+                coverImage.setImage(createPlaceholderImage());
+            }
+        } catch (Exception e) {
+            coverImage.setImage(createPlaceholderImage());
+        }
+        
+        StackPane imageContainer = new StackPane(coverImage);
+        imageContainer.setStyle("-fx-background-color: #f7fafc; -fx-background-radius: 8; -fx-padding: 10;");
 
         // Title with badges
         VBox titleSection = new VBox(5);
@@ -466,12 +495,23 @@ public class OnlineBookStoreFX extends Application {
         actionsBox.getChildren().addAll(cartBox, buttonBox);
 
         card.getChildren().addAll(
+            imageContainer,
             titleSection, authorLabel, priceBox, infoBox,
             new Separator(),
             actionsBox
         );
 
         return card;
+    }
+
+    private Image createPlaceholderImage() {
+        // Create a simple colored placeholder
+        // In a real app, you'd have a default book cover image
+        try {
+            return new Image("file:bookstore_data/images/placeholder.png", true);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void showReviewsDialog(Book book, Customer customer) {
@@ -720,8 +760,10 @@ public class OnlineBookStoreFX extends Application {
                         confirm.showAndWait().ifPresent(response -> {
                             if (response == ButtonType.OK) {
                                 facade.cancelOrder(customer, order.getOrderId());
-                                container.getChildren().clear();
-                                container.getChildren().addAll(createOrdersPanel(customer).getContent());
+                                // Refresh the entire orders tab
+                                TabPane tabPane = (TabPane) mainContainer.getCenter();
+                                Tab ordersTab = tabPane.getTabs().get(2); // My Orders is the 3rd tab
+                                ordersTab.setContent(createOrdersPanel(customer));
                             }
                         });
                     });
@@ -904,6 +946,21 @@ public class OnlineBookStoreFX extends Application {
         TextField stockField = new TextField();
         TextField editionField = new TextField();
         TextField coverField = new TextField("default.jpg");
+        final File[] selectedImageFile = new File[1]; // Store the selected file
+        Button uploadImageBtn = new Button("Upload Image...");
+        uploadImageBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Book Cover Image");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+            );
+            File selectedFile = fileChooser.showOpenDialog(dialog.getOwner());
+            if (selectedFile != null) {
+                selectedImageFile[0] = selectedFile; // Store full path
+                coverField.setText(selectedFile.getName()); // Display only filename
+            }
+        });
+        HBox coverBox = new HBox(10, coverField, uploadImageBtn);
         CheckBox featuredCheck = new CheckBox("Featured");
         CheckBox discountCheck = new CheckBox("Discounted");
         TextField discountField = new TextField("0");
@@ -927,7 +984,7 @@ public class OnlineBookStoreFX extends Application {
         grid.add(new Label("Edition:"), 0, row);
         grid.add(editionField, 1, row++);
         grid.add(new Label("Cover Image:"), 0, row);
-        grid.add(coverField, 1, row++);
+        grid.add(coverBox, 1, row++);
         grid.add(featuredCheck, 0, row);
         grid.add(discountCheck, 1, row++);
         grid.add(new Label("Discount %:"), 0, row);
@@ -939,6 +996,12 @@ public class OnlineBookStoreFX extends Application {
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
+                    // Handle image upload
+                    String coverImageName = coverField.getText();
+                    if (selectedImageFile[0] != null) {
+                        copyImageToDataDirectory(selectedImageFile[0]);
+                    }
+                    
                     BasicBook book = new BasicBook(
                         idField.getText(),
                         titleField.getText(),
@@ -947,7 +1010,7 @@ public class OnlineBookStoreFX extends Application {
                         categoryCombo.getValue(),
                         Integer.parseInt(stockField.getText()),
                         editionField.getText(),
-                        coverField.getText()
+                        coverImageName
                     );
 
                     // Set decorator properties directly on BasicBook
@@ -993,6 +1056,21 @@ public class OnlineBookStoreFX extends Application {
         TextField stockField = new TextField(String.valueOf(baseBook.getStock()));
         TextField editionField = new TextField(baseBook.getEdition());
         TextField coverField = new TextField(baseBook.getCoverImage());
+        final File[] selectedImageFile = new File[1]; // Store the selected file
+        Button uploadImageBtn = new Button("Upload Image...");
+        uploadImageBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Book Cover Image");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+            );
+            File selectedFile = fileChooser.showOpenDialog(dialog.getOwner());
+            if (selectedFile != null) {
+                selectedImageFile[0] = selectedFile; // Store full path
+                coverField.setText(selectedFile.getName()); // Display only filename
+            }
+        });
+        HBox editCoverBox = new HBox(10, coverField, uploadImageBtn);
         CheckBox featuredCheck = new CheckBox("Featured");
         featuredCheck.setSelected(book.isFeatured());
         CheckBox discountCheck = new CheckBox("Discounted");
@@ -1016,7 +1094,7 @@ public class OnlineBookStoreFX extends Application {
         grid.add(new Label("Edition:"), 0, row);
         grid.add(editionField, 1, row++);
         grid.add(new Label("Cover Image:"), 0, row);
-        grid.add(coverField, 1, row++);
+        grid.add(editCoverBox, 1, row++);
         grid.add(featuredCheck, 0, row);
         grid.add(discountCheck, 1, row++);
         grid.add(new Label("Discount %:"), 0, row);
@@ -1028,6 +1106,12 @@ public class OnlineBookStoreFX extends Application {
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
+                    // Handle image upload
+                    String coverImageName = coverField.getText();
+                    if (selectedImageFile[0] != null) {
+                        copyImageToDataDirectory(selectedImageFile[0]);
+                    }
+                    
                     // Update the base book fields
                     baseBook.setTitle(titleField.getText());
                     baseBook.setAuthor(authorField.getText());
@@ -1035,7 +1119,7 @@ public class OnlineBookStoreFX extends Application {
                     baseBook.setCategory(categoryCombo.getValue());
                     baseBook.setStock(Integer.parseInt(stockField.getText()));
                     baseBook.setEdition(editionField.getText());
-                    baseBook.setCoverImage(coverField.getText());
+                    baseBook.setCoverImage(coverImageName);
                     baseBook.setFeatured(featuredCheck.isSelected());
                     
                     if (discountCheck.isSelected()) {
@@ -1204,7 +1288,10 @@ public class OnlineBookStoreFX extends Application {
         Button refreshBtn = new Button("Refresh Statistics");
         refreshBtn.getStyleClass().add("btn-primary");
         refreshBtn.setOnAction(e -> {
-            mainContainer.setCenter(createStatisticsPanel());
+            // Refresh only the statistics tab content
+            TabPane tabPane = (TabPane) mainContainer.getCenter();
+            Tab statsTab = tabPane.getTabs().get(2); // Statistics is the 3rd tab
+            statsTab.setContent(createStatisticsPanel());
         });
 
         statsBox.getChildren().addAll(
@@ -1269,6 +1356,28 @@ public class OnlineBookStoreFX extends Application {
             Label categoryLabel = new Label("• " + category);
             categoryLabel.setStyle("-fx-font-size: 16px; -fx-padding: 5 10;");
             categoriesList.getChildren().add(categoryLabel);
+        }
+    }
+
+    private void copyImageToDataDirectory(File sourceFile) {
+        try {
+            // Create images directory if it doesn't exist
+            File imagesDir = new File("bookstore_data/images");
+            if (!imagesDir.exists()) {
+                imagesDir.mkdirs();
+            }
+            
+            // Copy the file to the images directory
+            if (sourceFile != null && sourceFile.exists()) {
+                File destFile = new File(imagesDir, sourceFile.getName());
+                Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Image copied: " + sourceFile.getName());
+            } else {
+                System.err.println("Source file not found: " + (sourceFile != null ? sourceFile.getAbsolutePath() : "null"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error copying image: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

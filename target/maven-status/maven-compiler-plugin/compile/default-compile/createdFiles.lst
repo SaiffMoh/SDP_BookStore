@@ -2,12 +2,10 @@ BasicBook.class
 DataManager$LocalDateTimeAdapter.class
 DiscountedBook.class
 DataManager$5.class
-OnlineBookStoreGUI$1.class
 Book.class
 Review.class
 Customer.class
 DataManager$3.class
-OnlineBookStoreGUI.class
 User.class
 DataManager$1.class
 DataManager$UserData.class

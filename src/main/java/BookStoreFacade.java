@@ -123,7 +123,17 @@ public class BookStoreFacade {
     }
     
     public List<Order> getCustomerOrderHistory(Customer customer) {
-        return customer.getOrderHistory();
+        // Get fresh order data from the system to ensure we have the latest status
+        List<Order> allOrders = bookStore.getAllOrders();
+        List<Order> customerOrders = new ArrayList<>();
+        
+        for (Order order : allOrders) {
+            if (order.getCustomer().getUsername().equals(customer.getUsername())) {
+                customerOrders.add(order);
+            }
+        }
+        
+        return customerOrders;
     }
     
     public Order getOrderDetails(String orderId) {
