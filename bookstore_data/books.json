@@ -5,10 +5,10 @@
     "author": "sdp",
     "price": 200.0,
     "category": "Science",
-    "stock": 10,
+    "stock": 9,
     "edition": "12",
     "coverImage": "images.jpg",
-    "popularity": 2,
+    "popularity": 3,
     "featured": true,
     "discountPercentage": 0.0
   },
@@ -18,10 +18,10 @@
     "author": "saif",
     "price": 1000.0,
     "category": "Classics",
-    "stock": 10,
+    "stock": 9,
     "edition": "10",
     "coverImage": "images (1).jpg",
-    "popularity": 2,
+    "popularity": 3,
     "featured": false,
     "discountPercentage": 0.5
   },
@@ -31,10 +31,10 @@
     "author": "khaled",
     "price": 100.0,
     "category": "Fiction",
-    "stock": 499,
+    "stock": 498,
     "edition": "1",
     "coverImage": "download.jpg",
-    "popularity": 1,
+    "popularity": 2,
     "featured": false,
     "discountPercentage": 0.0
   }

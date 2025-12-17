@@ -37,6 +37,39 @@
         "totalAmount": 700.0,
         "status": "SHIPPED",
         "orderDate": "2025-12-17T23:08:15.559965"
+      },
+      {
+        "orderId": "ORD1001",
+        "customerUsername": "Saif",
+        "items": [
+          {
+            "bookId": "101",
+            "bookTitle": "Me",
+            "bookAuthor": "sdp",
+            "bookCategory": "Science",
+            "quantity": 1,
+            "priceAtPurchase": 200.0
+          },
+          {
+            "bookId": "102",
+            "bookTitle": "B2",
+            "bookAuthor": "saif",
+            "bookCategory": "Classics",
+            "quantity": 1,
+            "priceAtPurchase": 500.0
+          },
+          {
+            "bookId": "104",
+            "bookTitle": "B3",
+            "bookAuthor": "khaled",
+            "bookCategory": "Fiction",
+            "quantity": 1,
+            "priceAtPurchase": 100.0
+          }
+        ],
+        "totalAmount": 800.0,
+        "status": "SHIPPED",
+        "orderDate": "2025-12-17T23:36:59.5403391"
       }
     ],
     "reviews": []
