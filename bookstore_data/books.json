@@ -1,28 +1,41 @@
 [
   {
-    "id": "1234",
-    "title": "q",
-    "author": "a",
-    "price": 90.0,
-    "category": "History",
-    "stock": 9,
-    "edition": "2",
-    "coverImage": "default.jpg",
-    "popularity": 1,
-    "featured": false,
-    "discountPercentage": 0.2
+    "id": "101",
+    "title": "Me",
+    "author": "sdp",
+    "price": 200.0,
+    "category": "Science",
+    "stock": 10,
+    "edition": "12",
+    "coverImage": "images.jpg",
+    "popularity": 2,
+    "featured": true,
+    "discountPercentage": 0.0
   },
   {
-    "id": "12345",
-    "title": "Saif",
+    "id": "102",
+    "title": "B2",
     "author": "saif",
-    "price": 1234.0,
-    "category": "Science",
-    "stock": 2,
+    "price": 1000.0,
+    "category": "Classics",
+    "stock": 10,
+    "edition": "10",
+    "coverImage": "images (1).jpg",
+    "popularity": 2,
+    "featured": false,
+    "discountPercentage": 0.5
+  },
+  {
+    "id": "104",
+    "title": "B3",
+    "author": "khaled",
+    "price": 100.0,
+    "category": "Fiction",
+    "stock": 499,
     "edition": "1",
-    "coverImage": "Screenshot 2025-12-15 225414.png",
+    "coverImage": "download.jpg",
     "popularity": 1,
     "featured": false,
-    "discountPercentage": 0.2
+    "discountPercentage": 0.0
   }
 ]

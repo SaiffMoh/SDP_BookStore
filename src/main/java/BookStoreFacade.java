@@ -94,9 +94,13 @@ public class BookStoreFacade {
         for (OrderItem item : customer.getCart().getItems()) {
             order.addItem(new OrderItem(item.getBook(), item.getQuantity()));
             
-            Book book = item.getBook();
-            book.setStock(book.getStock() - item.getQuantity());
-            book.incrementPopularity();
+            // Get the actual book from the bookstore, not the temporary one from OrderItem
+            Book actualBook = bookStore.getBookById(item.getBook().getId());
+            if (actualBook != null) {
+                actualBook.setStock(actualBook.getStock() - item.getQuantity());
+                // Increment popularity by the quantity ordered
+                actualBook.setPopularity(actualBook.getPopularity() + item.getQuantity());
+            }
         }
         
         bookStore.addOrder(order);
@@ -113,9 +117,12 @@ public class BookStoreFacade {
             order.setStatus("CANCELLED");
             
             for (OrderItem item : order.getItems()) {
-                Book book = item.getBook();
-                if (book != null) {
-                    book.setStock(book.getStock() + item.getQuantity());
+                // Get the actual book from the bookstore, not the temporary one from OrderItem
+                Book actualBook = bookStore.getBookById(item.getBook().getId());
+                if (actualBook != null) {
+                    actualBook.setStock(actualBook.getStock() + item.getQuantity());
+                    // Decrement popularity since this sale was cancelled
+                    actualBook.setPopularity(Math.max(0, actualBook.getPopularity() - item.getQuantity()));
                 }
             }
             bookStore.saveAllData();
@@ -223,9 +230,12 @@ public class BookStoreFacade {
             order.setStatus("CANCELLED");
             
             for (OrderItem item : order.getItems()) {
-                Book book = item.getBook();
-                if (book != null) {
-                    book.setStock(book.getStock() + item.getQuantity());
+                // Get the actual book from the bookstore, not the temporary one from OrderItem
+                Book actualBook = bookStore.getBookById(item.getBook().getId());
+                if (actualBook != null) {
+                    actualBook.setStock(actualBook.getStock() + item.getQuantity());
+                    // Decrement popularity since this sale was cancelled
+                    actualBook.setPopularity(Math.max(0, actualBook.getPopularity() - item.getQuantity()));
                 }
             }
             bookStore.saveAllData();
@@ -250,7 +260,35 @@ public class BookStoreFacade {
         return bookStore.getAllOrders().size();
     }
     
+    public int getCompletedOrdersCount() {
+        return (int) bookStore.getAllOrders().stream()
+            .filter(order -> order.getStatus().equals("CONFIRMED") || 
+                           order.getStatus().equals("SHIPPED") ||
+                           order.getStatus().equals("DELIVERED"))
+            .count();
+    }
+    
+    public int getPendingOrdersCount() {
+        return bookStore.getPendingOrders().size();
+    }
+    
+    public int getCancelledOrdersCount() {
+        return (int) bookStore.getAllOrders().stream()
+            .filter(order -> order.getStatus().equals("CANCELLED"))
+            .count();
+    }
+    
     public List<User> getAllCustomers() {
         return bookStore.getAllCustomers();
+    }
+    
+    // ============== SYSTEM OPERATIONS ==============
+    
+    public void saveAllData() {
+        bookStore.saveAllData();
+    }
+    
+    public Customer getCustomerByUsername(String username) {
+        return bookStore.getCustomerByUsername(username);
     }
 }

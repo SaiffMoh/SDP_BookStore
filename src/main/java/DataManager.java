@@ -79,11 +79,19 @@ public class DataManager {
 
     public void saveBooks(List<Book> books) {
         // Convert decorated books to BasicBook for JSON storage
-        // Preserve decorator information in BasicBook fields
+        // Extract decorator information and store in BasicBook metadata fields
         List<BasicBook> basicBooks = new ArrayList<>();
         for (Book book : books) {
             BasicBook baseBook = book.getBaseBook();
-            // Decorator state is already in the base book fields, just save it
+            
+            // Store decorator metadata for persistence
+            baseBook.setFeatured(book.isFeatured());
+            if (book.isDiscounted()) {
+                baseBook.setDiscountPercentage(book.getDiscountPercentage() / 100.0);
+            } else {
+                baseBook.setDiscountPercentage(0.0);
+            }
+            
             basicBooks.add(baseBook);
         }
         
@@ -197,9 +205,28 @@ public class DataManager {
 
         try (Reader reader = new FileReader(file)) {
             Type bookListType = new TypeToken<List<BasicBook>>(){}.getType();
-            List<BasicBook> books = gson.fromJson(reader, bookListType);
+            List<BasicBook> basicBooks = gson.fromJson(reader, bookListType);
+            
+            // Apply decorators based on metadata
+            List<Book> books = new ArrayList<>();
+            for (BasicBook basicBook : basicBooks) {
+                Book book = basicBook;
+                
+                // Apply discount decorator if needed
+                if (basicBook.getDiscountPercentageMetadata() > 0) {
+                    book = new DiscountedBook(book, basicBook.getDiscountPercentageMetadata());
+                }
+                
+                // Apply featured decorator if needed
+                if (basicBook.getFeaturedMetadata()) {
+                    book = new FeaturedBook(book);
+                }
+                
+                books.add(book);
+            }
+            
             System.out.println("✓ Loaded " + books.size() + " books");
-            return new ArrayList<>(books);
+            return books;
         } catch (IOException e) {
             System.err.println("✗ Error loading books: " + e.getMessage());
             return new ArrayList<>();

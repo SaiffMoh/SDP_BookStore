@@ -16,6 +16,7 @@ import javafx.stage.StageStyle;
 import javafx.animation.*;
 import javafx.util.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class OnlineBookStoreFX extends Application {
@@ -33,7 +34,7 @@ public class OnlineBookStoreFX extends Application {
         // Add shutdown hook to save data
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("\n========== Application Closing ==========");
-            BookStoreSystem.getInstance().saveAllData();
+            facade.saveAllData();
             System.out.println("Goodbye!");
         }));
 
@@ -45,57 +46,72 @@ public class OnlineBookStoreFX extends Application {
         Stage loginStage = new Stage();
         loginStage.initStyle(StageStyle.UNDECORATED);
         
-        VBox loginBox = new VBox(20);
+        VBox loginBox = new VBox(24);
         loginBox.getStyleClass().add("login-dialog");
         loginBox.setAlignment(Pos.CENTER);
-        loginBox.setPadding(new Insets(50, 60, 50, 60));
-
-        // Icon/Logo placeholder
-        Label iconLabel = new Label("📚");
-        iconLabel.setStyle("-fx-font-size: 48px;");
+        loginBox.setPadding(new Insets(60, 80, 60, 80));
         
-        Label titleLabel = new Label("Book Store");
+        // Close button
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #86868b; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 8;");
+        closeBtn.setOnAction(e -> {
+            loginStage.close();
+            Platform.exit();
+        });
+        StackPane closeContainer = new StackPane(closeBtn);
+        closeContainer.setAlignment(Pos.TOP_RIGHT);
+        closeContainer.setPadding(new Insets(-40, -60, 0, 0));
+
+        // Icon/Logo
+        Label iconLabel = new Label("📚");
+        iconLabel.setStyle("-fx-font-size: 56px;");
+        
+        Label titleLabel = new Label("Bookstore");
         titleLabel.getStyleClass().add("login-title");
         
-        Label subtitleLabel = new Label("Sign in to continue");
+        Label subtitleLabel = new Label("Sign in to your account");
         subtitleLabel.getStyleClass().add("login-subtitle");
 
-        VBox formBox = new VBox(15);
-        formBox.setAlignment(Pos.CENTER);
+        VBox formBox = new VBox(16);
+        formBox.setAlignment(Pos.CENTER_LEFT);
+        formBox.setMaxWidth(320);
 
         Label usernameLabel = new Label("Username");
         usernameLabel.getStyleClass().add("field-label");
         TextField usernameField = new TextField();
-        usernameField.setPromptText("Enter username");
+        usernameField.setPromptText("Enter your username");
         usernameField.getStyleClass().add("text-field");
 
         Label passwordLabel = new Label("Password");
         passwordLabel.getStyleClass().add("field-label");
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Enter password");
+        passwordField.setPromptText("Enter your password");
         passwordField.getStyleClass().add("password-field");
-
-        HBox buttonBox = new HBox(15);
-        buttonBox.setAlignment(Pos.CENTER);
-        
-        Button loginButton = new Button("Sign In");
-        loginButton.getStyleClass().add("btn-primary");
-        loginButton.setPrefWidth(140);
-        
-        Button registerButton = new Button("Register");
-        registerButton.getStyleClass().add("btn-success");
-        registerButton.setPrefWidth(140);
-
-        buttonBox.getChildren().addAll(loginButton, registerButton);
 
         formBox.getChildren().addAll(
             usernameLabel, usernameField,
             passwordLabel, passwordField
         );
 
-        loginBox.getChildren().addAll(iconLabel, titleLabel, subtitleLabel, formBox, buttonBox);
+        HBox buttonBox = new HBox(12);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPadding(new Insets(8, 0, 0, 0));
+        
+        Button loginButton = new Button("Sign In");
+        loginButton.getStyleClass().add("btn-primary");
+        loginButton.setPrefWidth(154);
+        loginButton.setPrefHeight(44);
+        
+        Button registerButton = new Button("Create Account");
+        registerButton.getStyleClass().add("btn-success");
+        registerButton.setPrefWidth(154);
+        registerButton.setPrefHeight(44);
 
-        Scene loginScene = new Scene(loginBox, 500, 550);
+        buttonBox.getChildren().addAll(loginButton, registerButton);
+
+        loginBox.getChildren().addAll(closeContainer, iconLabel, titleLabel, subtitleLabel, formBox, buttonBox);
+
+        Scene loginScene = new Scene(loginBox, 520, 600);
         loginScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         
         loginStage.setScene(loginScene);
@@ -113,7 +129,7 @@ public class OnlineBookStoreFX extends Application {
                 loginStage.close();
                 expandToMainApplication();
             } else {
-                showAlert("Login Failed", "Invalid credentials!", Alert.AlertType.ERROR);
+                showAlert("Login Failed", "Invalid username or password", Alert.AlertType.ERROR);
             }
         });
 
@@ -128,22 +144,22 @@ public class OnlineBookStoreFX extends Application {
         mainContainer = new BorderPane();
         mainContainer.getStyleClass().add("main-container");
 
+        mainScene = new Scene(mainContainer, 1400, 900);
+        mainScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+
         if (currentUser instanceof Customer) {
             showCustomerDashboard((Customer) currentUser);
         } else if (currentUser instanceof Admin) {
             showAdminDashboard((Admin) currentUser);
         }
 
-        mainScene = new Scene(mainContainer, 1200, 800);
-        mainScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
-
         primaryStage.setScene(mainScene);
-        primaryStage.setTitle("Online Book Store");
+        primaryStage.setTitle("Bookstore");
         primaryStage.show();
         primaryStage.centerOnScreen();
 
         // Fade in animation
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), mainContainer);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(400), mainContainer);
         fadeIn.setFromValue(0);
         fadeIn.setToValue(1);
         fadeIn.play();
@@ -151,30 +167,36 @@ public class OnlineBookStoreFX extends Application {
 
     private void showRegistrationDialog(Stage ownerStage) {
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Customer Registration");
-        dialog.setHeaderText("Create a new account");
+        dialog.setTitle("Create Account");
+        dialog.setHeaderText("Register a new customer account");
         dialog.initOwner(ownerStage);
 
-        VBox content = new VBox(15);
-        content.setPadding(new Insets(20));
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(16);
+        grid.setPadding(new Insets(24));
+        grid.setMaxWidth(400);
 
         TextField usernameField = new TextField();
-        usernameField.setPromptText("Username");
+        usernameField.setPromptText("Choose a username");
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Password");
+        passwordField.setPromptText("Choose a password");
         TextField addressField = new TextField();
-        addressField.setPromptText("Address");
+        addressField.setPromptText("Your address");
         TextField phoneField = new TextField();
-        phoneField.setPromptText("Phone");
+        phoneField.setPromptText("Your phone number");
 
-        content.getChildren().addAll(
-            new Label("Username:"), usernameField,
-            new Label("Password:"), passwordField,
-            new Label("Address:"), addressField,
-            new Label("Phone:"), phoneField
-        );
+        int row = 0;
+        grid.add(new Label("Username"), 0, row);
+        grid.add(usernameField, 1, row++);
+        grid.add(new Label("Password"), 0, row);
+        grid.add(passwordField, 1, row++);
+        grid.add(new Label("Address"), 0, row);
+        grid.add(addressField, 1, row++);
+        grid.add(new Label("Phone"), 0, row);
+        grid.add(phoneField, 1, row++);
 
-        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         dialog.showAndWait().ifPresent(response -> {
@@ -186,84 +208,138 @@ public class OnlineBookStoreFX extends Application {
 
                 if (!username.isEmpty() && !password.isEmpty()) {
                     facade.registerCustomer(username, password, address, phone);
-                    showAlert("Success", "Registration successful! You can now login.", Alert.AlertType.INFORMATION);
+                    showAlert("Success", "Account created successfully! You can now sign in.", Alert.AlertType.INFORMATION);
                 } else {
-                    showAlert("Error", "Username and password are required!", Alert.AlertType.ERROR);
+                    showAlert("Error", "Username and password are required", Alert.AlertType.ERROR);
                 }
             }
         });
     }
 
     private void showCustomerDashboard(Customer customer) {
-        // Top bar
-        HBox topBar = createTopBar("Welcome, " + customer.getUsername(), true);
-        mainContainer.setTop(topBar);
+        // Modern top navigation bar
+        HBox topBar = new HBox(20);
+        topBar.getStyleClass().add("top-bar");
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(16, 32, 16, 32));
 
-        // Tab pane
-        TabPane tabPane = new TabPane();
-        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        Label logoLabel = new Label("📚 Bookstore");
+        logoLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #1d1d1f;");
 
-        Tab browseTab = new Tab("Browse Books", createBrowseBooksPanel(customer));
-        Tab cartTab = new Tab("Shopping Cart", createCartPanel(customer));
-        Tab ordersTab = new Tab("My Orders", createOrdersPanel(customer));
-        Tab accountTab = new Tab("Account", createAccountPanel(customer));
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        tabPane.getTabs().addAll(browseTab, cartTab, ordersTab, accountTab);
+        // Navigation buttons
+        Button browseBtn = new Button("Browse");
+        browseBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #0071e3; -fx-font-size: 15px; -fx-cursor: hand; -fx-font-weight: 500;");
+        browseBtn.setOnAction(e -> showBrowseBooksScreen(customer));
 
-        // Refresh cart and orders when tabs are selected
-        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (newTab == cartTab) {
-                cartTab.setContent(createCartPanel(customer));
-            } else if (newTab == ordersTab) {
-                ordersTab.setContent(createOrdersPanel(customer));
-            }
+        Button ordersBtn = new Button("Orders");
+        ordersBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #1d1d1f; -fx-font-size: 15px; -fx-cursor: hand;");
+        ordersBtn.setOnAction(e -> showOrdersScreen(customer));
+
+        Button cartBtn = new Button("Cart");
+        cartBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #1d1d1f; -fx-font-size: 15px; -fx-cursor: hand;");
+        cartBtn.setOnAction(e -> showCartScreen(customer));
+
+        Button accountBtn = new Button("Account");
+        accountBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #1d1d1f; -fx-font-size: 15px; -fx-cursor: hand;");
+        accountBtn.setOnAction(e -> showAccountScreen(customer));
+
+        Separator sep = new Separator(Orientation.VERTICAL);
+        sep.setPrefHeight(20);
+        sep.setStyle("-fx-background-color: #e5e5e7;");
+
+        Label usernameLabel = new Label(customer.getUsername());
+        usernameLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 15px;");
+
+        Button logoutBtn = new Button("Sign Out");
+        logoutBtn.getStyleClass().add("btn-danger");
+        logoutBtn.setPrefHeight(36);
+        logoutBtn.setOnAction(e -> logout());
+        
+        Button fullscreenBtn = new Button("⛶");
+        fullscreenBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #1d1d1f; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 8;");
+        fullscreenBtn.setOnAction(e -> primaryStage.setFullScreen(!primaryStage.isFullScreen()));
+        
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff3b30; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 8;");
+        closeBtn.setOnAction(e -> {
+            Platform.exit();
         });
 
-        mainContainer.setCenter(tabPane);
+        topBar.getChildren().addAll(logoLabel, spacer, browseBtn, ordersBtn, cartBtn, accountBtn, sep, usernameLabel, logoutBtn, fullscreenBtn, closeBtn);
+        mainContainer.setTop(topBar);
+
+        // Main content - Browse Books
+        showBrowseBooksScreen(customer);
+    }
+
+    private void showBrowseBooksScreen(Customer customer) {
+        mainContainer.setCenter(createBrowseBooksPanel(customer));
+    }
+
+    private void showCartScreen(Customer customer) {
+        ScrollPane cartContent = createCartPanel(customer);
+        mainContainer.setCenter(cartContent);
+    }
+
+    private void showOrdersScreen(Customer customer) {
+        ScrollPane ordersContent = createOrdersPanel(customer);
+        mainContainer.setCenter(ordersContent);
+    }
+
+    private void showAccountScreen(Customer customer) {
+        ScrollPane accountContent = createAccountPanel(customer);
+        mainContainer.setCenter(accountContent);
     }
 
     private void showAdminDashboard(Admin admin) {
-        // Top bar
-        HBox topBar = createTopBar("Admin Dashboard - " + admin.getUsername(), true);
-        topBar.setStyle("-fx-background-color: #34495e;");
+        // Admin top bar
+        HBox topBar = new HBox(20);
+        topBar.getStyleClass().add("top-bar");
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(16, 32, 16, 32));
+
+        Label logoLabel = new Label("📚 Bookstore Admin");
+        logoLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #1d1d1f;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label adminLabel = new Label(admin.getUsername());
+        adminLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 15px;");
+
+        Button logoutBtn = new Button("Sign Out");
+        logoutBtn.getStyleClass().add("btn-danger");
+        logoutBtn.setPrefHeight(36);
+        logoutBtn.setOnAction(e -> logout());
+        
+        Button fullscreenBtn = new Button("⛶");
+        fullscreenBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #1d1d1f; -fx-font-size: 18px; -fx-cursor: hand; -fx-padding: 8;");
+        fullscreenBtn.setOnAction(e -> primaryStage.setFullScreen(!primaryStage.isFullScreen()));
+        
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff3b30; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 8;");
+        closeBtn.setOnAction(e -> {
+            Platform.exit();
+        });
+
+        topBar.getChildren().addAll(logoLabel, spacer, adminLabel, logoutBtn, fullscreenBtn, closeBtn);
         mainContainer.setTop(topBar);
 
         // Tab pane
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        Tab booksTab = new Tab("Manage Books", createManageBooksPanel());
-        Tab ordersTab = new Tab("Manage Orders", createManageOrdersPanel());
+        Tab booksTab = new Tab("Books", createManageBooksPanel());
+        Tab ordersTab = new Tab("Orders", createManageOrdersPanel());
         Tab statsTab = new Tab("Statistics", createStatisticsPanel());
         Tab categoriesTab = new Tab("Categories", createManageCategoriesPanel());
 
         tabPane.getTabs().addAll(booksTab, ordersTab, statsTab, categoriesTab);
 
         mainContainer.setCenter(tabPane);
-    }
-
-    private HBox createTopBar(String text, boolean showLogout) {
-        HBox topBar = new HBox();
-        topBar.getStyleClass().add("top-bar");
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setSpacing(20);
-
-        Label label = new Label(text);
-        label.getStyleClass().add("top-bar-label");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        topBar.getChildren().addAll(label, spacer);
-
-        if (showLogout) {
-            Button logoutBtn = new Button("Logout");
-            logoutBtn.getStyleClass().add("btn-danger");
-            logoutBtn.setOnAction(e -> logout());
-            topBar.getChildren().add(logoutBtn);
-        }
-
-        return topBar;
     }
 
     private void logout() {
@@ -273,50 +349,47 @@ public class OnlineBookStoreFX extends Application {
     }
 
     private ScrollPane createBrowseBooksPanel(Customer customer) {
-        VBox container = new VBox(20);
-        container.setPadding(new Insets(25));
-        container.setStyle("-fx-background-color: #f5f7fa;");
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
+        container.setStyle("-fx-background-color: #fafafa;");
 
-        // Search and filter bar - Card style
-        VBox searchCard = new VBox(15);
-        searchCard.getStyleClass().add("card");
-        searchCard.setPadding(new Insets(20));
+        // Search and filter section
+        VBox searchSection = new VBox(16);
+        searchSection.getStyleClass().add("card");
+        searchSection.setPadding(new Insets(20));
         
-        HBox searchBar = new HBox(15);
-        searchBar.setAlignment(Pos.CENTER_LEFT);
+        HBox searchRow = new HBox(12);
+        searchRow.setAlignment(Pos.CENTER_LEFT);
 
         TextField searchField = new TextField();
-        searchField.setPromptText("🔍 Search books...");
-        searchField.setPrefWidth(300);
+        searchField.setPromptText("Search books by title or author...");
+        searchField.setPrefWidth(400);
+        searchField.setPrefHeight(40);
 
         ComboBox<String> categoryCombo = new ComboBox<>();
         categoryCombo.setPromptText("All Categories");
         categoryCombo.getItems().add("All Categories");
         categoryCombo.getItems().addAll(facade.getAllCategories());
         categoryCombo.setValue("All Categories");
+        categoryCombo.setPrefHeight(40);
 
         ComboBox<String> sortCombo = new ComboBox<>();
         sortCombo.getItems().addAll("Default", "Price: Low to High", "Price: High to Low", "Popularity");
         sortCombo.setValue("Default");
+        sortCombo.setPrefHeight(40);
 
         Button searchBtn = new Button("Search");
         searchBtn.getStyleClass().add("btn-primary");
+        searchBtn.setPrefHeight(40);
 
-        searchBar.getChildren().addAll(
-            searchField,
-            new Label("Category:"), categoryCombo,
-            new Label("Sort:"), sortCombo,
-            searchBtn
-        );
-        
-        searchCard.getChildren().add(searchBar);
+        searchRow.getChildren().addAll(searchField, categoryCombo, sortCombo, searchBtn);
+        searchSection.getChildren().add(searchRow);
 
-        // Books grid
-        FlowPane booksGrid = new FlowPane();
+        // Books grid - Compact 4-column layout
+        GridPane booksGrid = new GridPane();
         booksGrid.setHgap(20);
         booksGrid.setVgap(20);
-        booksGrid.setPadding(new Insets(15));
-        booksGrid.setStyle("-fx-background-color: transparent;");
+        booksGrid.setPadding(new Insets(8, 0, 0, 0));
 
         Runnable updateBooks = () -> {
             booksGrid.getChildren().clear();
@@ -347,8 +420,16 @@ public class OnlineBookStoreFX extends Application {
                 }
             }
 
+            int col = 0;
+            int row = 0;
             for (Book book : books) {
-                booksGrid.getChildren().add(createBookCard(book, customer));
+                VBox bookCard = createCompactBookCard(book, customer);
+                booksGrid.add(bookCard, col, row);
+                col++;
+                if (col == 4) {
+                    col = 0;
+                    row++;
+                }
             }
         };
 
@@ -359,27 +440,28 @@ public class OnlineBookStoreFX extends Application {
 
         updateBooks.run();
 
-        container.getChildren().addAll(searchCard, booksGrid);
+        container.getChildren().addAll(searchSection, booksGrid);
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
-    private VBox createBookCard(Book book, Customer customer) {
+    private VBox createCompactBookCard(Book book, Customer customer) {
         VBox card = new VBox(12);
         card.getStyleClass().add("book-card");
-        card.setPrefWidth(220);
-        card.setMaxWidth(220);
-        card.setMinHeight(520);
-        card.setPadding(new Insets(20));
+        card.setPrefWidth(300);
+        card.setMinWidth(300);
+        card.setMaxWidth(300);
+        card.setPadding(new Insets(16));
 
-        // Book cover image
+        // Book cover image - smaller and cleaner
         ImageView coverImage = new ImageView();
-        coverImage.setFitWidth(180);
-        coverImage.setFitHeight(240);
+        coverImage.setFitWidth(268);
+        coverImage.setFitHeight(160);
         coverImage.setPreserveRatio(true);
-        coverImage.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 8;");
+        coverImage.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);");
         
         try {
             String imagePath = "file:bookstore_data/images/" + book.getCoverImage();
@@ -387,7 +469,6 @@ public class OnlineBookStoreFX extends Application {
             if (!image.isError()) {
                 coverImage.setImage(image);
             } else {
-                // Use placeholder if image not found
                 coverImage.setImage(createPlaceholderImage());
             }
         } catch (Exception e) {
@@ -395,21 +476,29 @@ public class OnlineBookStoreFX extends Application {
         }
         
         StackPane imageContainer = new StackPane(coverImage);
-        imageContainer.setStyle("-fx-background-color: #f7fafc; -fx-background-radius: 8; -fx-padding: 10;");
+        imageContainer.setStyle("-fx-background-color: #f5f5f7; -fx-background-radius: 8;");
+        imageContainer.setPadding(new Insets(8));
 
-        // Title with badges
-        VBox titleSection = new VBox(5);
+        // Title and author
+        VBox infoBox = new VBox(4);
         
         Label titleLabel = new Label(book.getTitle());
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #1a202c;");
+        titleLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 15px; -fx-text-fill: #1d1d1f;");
         titleLabel.setWrapText(true);
-        titleLabel.setMaxWidth(180);
+        titleLabel.setMaxWidth(268);
         
-        HBox badgesBox = new HBox(8);
+        Label authorLabel = new Label(book.getAuthor());
+        authorLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 13px;");
+        authorLabel.setMaxWidth(268);
+
+        infoBox.getChildren().addAll(titleLabel, authorLabel);
+
+        // Badges
+        HBox badgesBox = new HBox(6);
         badgesBox.setAlignment(Pos.CENTER_LEFT);
         
         if (book.isFeatured()) {
-            Label featuredBadge = new Label("⭐ FEATURED");
+            Label featuredBadge = new Label("FEATURED");
             featuredBadge.getStyleClass().add("featured-badge");
             badgesBox.getChildren().add(featuredBadge);
         }
@@ -419,94 +508,84 @@ public class OnlineBookStoreFX extends Application {
             discountBadge.getStyleClass().add("discount-badge");
             badgesBox.getChildren().add(discountBadge);
         }
-        
-        titleSection.getChildren().addAll(titleLabel, badgesBox);
 
-        Label authorLabel = new Label("by " + book.getAuthor());
-        authorLabel.setStyle("-fx-text-fill: #718096; -fx-font-size: 14px; -fx-font-style: italic;");
-
-        // Price display
-        HBox priceBox = new HBox(10);
+        // Price
+        HBox priceBox = new HBox(8);
         priceBox.setAlignment(Pos.CENTER_LEFT);
-        priceBox.setPadding(new Insets(8, 0, 8, 0));
 
         if (book.isDiscounted()) {
-            Label originalPrice = new Label("$" + String.format("%.2f", book.getOriginalPrice()));
-            originalPrice.setStyle("-fx-text-fill: #a0aec0; -fx-strikethrough: true; -fx-font-size: 14px;");
-            
             Label discountedPrice = new Label("$" + String.format("%.2f", book.getPrice()));
-            discountedPrice.setStyle("-fx-text-fill: #eb3349; -fx-font-weight: bold; -fx-font-size: 24px;");
+            discountedPrice.setStyle("-fx-text-fill: #ff3b30; -fx-font-weight: 600; -fx-font-size: 20px;");
+            
+            Label originalPrice = new Label("$" + String.format("%.2f", book.getOriginalPrice()));
+            originalPrice.setStyle("-fx-text-fill: #86868b; -fx-strikethrough: true; -fx-font-size: 13px;");
             
             priceBox.getChildren().addAll(discountedPrice, originalPrice);
         } else {
             Label price = new Label("$" + String.format("%.2f", book.getPrice()));
-            price.setStyle("-fx-font-weight: bold; -fx-font-size: 24px; -fx-text-fill: #667eea;");
+            price.setStyle("-fx-font-weight: 600; -fx-font-size: 20px; -fx-text-fill: #1d1d1f;");
             priceBox.getChildren().add(price);
         }
 
-        // Info section with icons
-        VBox infoBox = new VBox(6);
-        infoBox.setStyle("-fx-background-color: #f7fafc; -fx-background-radius: 10; -fx-padding: 12;");
+        // Compact info
+        HBox metaBox = new HBox(16);
+        metaBox.setAlignment(Pos.CENTER_LEFT);
         
-        Label categoryLabel = new Label("📁 " + book.getCategory());
-        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #4a5568;");
+        Label stockLabel = new Label("Stock: " + book.getStock());
+        stockLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #86868b;");
         
-        Label stockLabel = new Label("📦 Stock: " + book.getStock());
-        stockLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #4a5568;");
+        Label ratingLabel = new Label("⭐ " + book.getPopularity());
+        ratingLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #86868b;");
         
-        Label popularityLabel = new Label("⭐ Rating: " + book.getPopularity());
-        popularityLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #4a5568;");
-        
-        infoBox.getChildren().addAll(categoryLabel, stockLabel, popularityLabel);
+        metaBox.getChildren().addAll(stockLabel, ratingLabel);
 
         // Add to cart section
-        VBox actionsBox = new VBox(10);
-        actionsBox.setPadding(new Insets(5, 0, 0, 0));
+        HBox cartBox = new HBox(8);
+        cartBox.setAlignment(Pos.CENTER_LEFT);
         
-        HBox cartBox = new HBox(10);
-        cartBox.setAlignment(Pos.CENTER);
+        Label qtyLabel = new Label("Qty");
+        qtyLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #86868b;");
         
         Spinner<Integer> quantitySpinner = new Spinner<>(1, book.getStock(), 1);
-        quantitySpinner.setPrefWidth(80);
+        quantitySpinner.setPrefWidth(70);
+        quantitySpinner.setPrefHeight(36);
         quantitySpinner.setEditable(true);
 
         Button addToCartBtn = new Button("Add to Cart");
         addToCartBtn.getStyleClass().add("btn-success");
-        addToCartBtn.setPrefWidth(120);
+        addToCartBtn.setPrefHeight(36);
+        HBox.setHgrow(addToCartBtn, Priority.ALWAYS);
+        addToCartBtn.setMaxWidth(Double.MAX_VALUE);
         addToCartBtn.setOnAction(e -> {
             try {
                 facade.addToCart(customer, book, quantitySpinner.getValue());
-                showAlert("Success", "Added to cart!", Alert.AlertType.INFORMATION);
+                showAlert("Added to Cart", book.getTitle() + " has been added to your cart", Alert.AlertType.INFORMATION);
             } catch (IllegalArgumentException ex) {
                 showAlert("Error", ex.getMessage(), Alert.AlertType.ERROR);
             }
         });
 
-        cartBox.getChildren().addAll(new Label("Qty:"), quantitySpinner);
-        
-        VBox buttonBox = new VBox(8);
-        buttonBox.getChildren().addAll(addToCartBtn);
+        cartBox.getChildren().addAll(qtyLabel, quantitySpinner, addToCartBtn);
 
-        Button reviewsBtn = new Button("📝 Reviews");
-        reviewsBtn.setPrefWidth(180);
-        buttonBox.getChildren().add(reviewsBtn);
+        Button reviewsBtn = new Button("Reviews");
+        reviewsBtn.setPrefHeight(36);
+        reviewsBtn.setMaxWidth(Double.MAX_VALUE);
         reviewsBtn.setOnAction(e -> showReviewsDialog(book, customer));
-
-        actionsBox.getChildren().addAll(cartBox, buttonBox);
 
         card.getChildren().addAll(
             imageContainer,
-            titleSection, authorLabel, priceBox, infoBox,
-            new Separator(),
-            actionsBox
+            infoBox,
+            badgesBox,
+            priceBox,
+            metaBox,
+            cartBox,
+            reviewsBtn
         );
 
         return card;
     }
 
     private Image createPlaceholderImage() {
-        // Create a simple colored placeholder
-        // In a real app, you'd have a default book cover image
         try {
             return new Image("file:bookstore_data/images/placeholder.png", true);
         } catch (Exception e) {
@@ -516,79 +595,93 @@ public class OnlineBookStoreFX extends Application {
 
     private void showReviewsDialog(Book book, Customer customer) {
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Reviews for " + book.getTitle());
-        dialog.setHeaderText(null);
+        dialog.setTitle("Reviews");
+        dialog.setHeaderText(book.getTitle());
 
-        VBox content = new VBox(15);
-        content.setPadding(new Insets(20));
-        content.setPrefWidth(550);
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(24));
+        content.setPrefWidth(600);
 
         // Reviews list
-        VBox reviewsList = new VBox(10);
+        VBox reviewsList = new VBox(12);
         List<Review> reviews = facade.getBookReviews(book.getId());
         
         if (reviews.isEmpty()) {
-            Label noReviews = new Label("No reviews yet. Be the first to review!");
-            noReviews.setStyle("-fx-font-style: italic; -fx-text-fill: #7f8c8d;");
+            Label noReviews = new Label("No reviews yet. Be the first to review this book!");
+            noReviews.setStyle("-fx-font-style: italic; -fx-text-fill: #86868b;");
             reviewsList.getChildren().add(noReviews);
         } else {
             for (Review review : reviews) {
-                VBox reviewBox = new VBox(5);
+                VBox reviewBox = new VBox(8);
                 reviewBox.getStyleClass().add("card");
-                reviewBox.setPadding(new Insets(10));
+                reviewBox.setPadding(new Insets(16));
                 
-                Label reviewHeader = new Label(review.getCustomerUsername() + " - Rating: " + review.getRating() + "/5");
-                reviewHeader.setStyle("-fx-font-weight: bold;");
+                HBox headerBox = new HBox(12);
+                headerBox.setAlignment(Pos.CENTER_LEFT);
                 
-                Label reviewComment = new Label(review.getComment());
-                reviewComment.setWrapText(true);
+                Label usernameLabel = new Label(review.getCustomerUsername());
+                usernameLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 15px;");
                 
-                Label reviewDate = new Label(review.getReviewDate().toString());
-                reviewDate.setStyle("-fx-font-size: 11px; -fx-text-fill: #95a5a6;");
+                Label ratingLabel = new Label("⭐".repeat(review.getRating()));
+                ratingLabel.setStyle("-fx-font-size: 14px;");
                 
-                reviewBox.getChildren().addAll(reviewHeader, reviewComment, reviewDate);
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                
+                Label dateLabel = new Label(review.getReviewDate().toString());
+                dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #86868b;");
+                
+                headerBox.getChildren().addAll(usernameLabel, ratingLabel, spacer, dateLabel);
+                
+                Label commentLabel = new Label(review.getComment());
+                commentLabel.setWrapText(true);
+                commentLabel.setStyle("-fx-font-size: 15px;");
+                
+                reviewBox.getChildren().addAll(headerBox, commentLabel);
                 reviewsList.getChildren().add(reviewBox);
             }
         }
 
         ScrollPane reviewsScroll = new ScrollPane(reviewsList);
         reviewsScroll.setFitToWidth(true);
-        reviewsScroll.setPrefHeight(250);
+        reviewsScroll.setPrefHeight(300);
+        reviewsScroll.setStyle("-fx-background-color: transparent;");
 
         // Add review section
-        Label addReviewLabel = new Label("Add Your Review");
-        addReviewLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        VBox addReviewBox = new VBox(12);
+        addReviewBox.getStyleClass().add("card");
+        addReviewBox.setPadding(new Insets(16));
 
-        HBox ratingBox = new HBox(10);
+        Label addReviewLabel = new Label("Write a Review");
+        addReviewLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 15px;");
+
+        HBox ratingBox = new HBox(12);
         ratingBox.setAlignment(Pos.CENTER_LEFT);
-        Label ratingLabel = new Label("Rating (1-5):");
+        Label ratingLabel = new Label("Rating");
         Spinner<Integer> ratingSpinner = new Spinner<>(1, 5, 5);
         ratingSpinner.setPrefWidth(80);
+        ratingSpinner.setPrefHeight(36);
         ratingBox.getChildren().addAll(ratingLabel, ratingSpinner);
 
         TextArea commentArea = new TextArea();
-        commentArea.setPromptText("Write your comment here...");
-        commentArea.setPrefRowCount(3);
+        commentArea.setPromptText("Share your thoughts about this book...");
+        commentArea.setPrefRowCount(4);
 
         Button submitBtn = new Button("Submit Review");
-        submitBtn.getStyleClass().add("btn-success");
+        submitBtn.getStyleClass().add("btn-primary");
+        submitBtn.setPrefHeight(40);
         submitBtn.setOnAction(e -> {
             String comment = commentArea.getText();
             if (!comment.isEmpty()) {
                 facade.addReview(customer, book.getId(), ratingSpinner.getValue(), comment);
-                showAlert("Success", "Review submitted!", Alert.AlertType.INFORMATION);
+                showAlert("Success", "Your review has been submitted", Alert.AlertType.INFORMATION);
                 dialog.close();
             }
         });
 
-        content.getChildren().addAll(
-            reviewsScroll,
-            new Separator(),
-            addReviewLabel,
-            ratingBox,
-            commentArea,
-            submitBtn
-        );
+        addReviewBox.getChildren().addAll(addReviewLabel, ratingBox, commentArea, submitBtn);
+
+        content.getChildren().addAll(reviewsScroll, addReviewBox);
 
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
@@ -596,59 +689,83 @@ public class OnlineBookStoreFX extends Application {
     }
 
     private ScrollPane createCartPanel(Customer customer) {
-        VBox container = new VBox(15);
-        container.setPadding(new Insets(20));
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
+        container.setStyle("-fx-background-color: #fafafa;");
 
         Label titleLabel = new Label("Shopping Cart");
         titleLabel.getStyleClass().add("title-label");
 
-        VBox cartItems = new VBox(10);
+        VBox cartItems = new VBox(12);
+
         List<OrderItem> items = facade.getCartItems(customer);
 
         if (items.isEmpty()) {
+            VBox emptyBox = new VBox(16);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(60));
+            emptyBox.getStyleClass().add("card");
+            
             Label emptyLabel = new Label("Your cart is empty");
-            emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #7f8c8d;");
-            cartItems.getChildren().add(emptyLabel);
+            emptyLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #86868b;");
+            
+            Label emptySubLabel = new Label("Add some books to get started");
+            emptySubLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #86868b;");
+            
+            emptyBox.getChildren().addAll(emptyLabel, emptySubLabel);
+            cartItems.getChildren().add(emptyBox);
         } else {
             for (OrderItem item : items) {
                 HBox itemBox = new HBox(20);
                 itemBox.getStyleClass().add("card");
                 itemBox.setAlignment(Pos.CENTER_LEFT);
-                itemBox.setPadding(new Insets(15));
+                itemBox.setPadding(new Insets(16));
 
-                VBox infoBox = new VBox(5);
+                VBox infoBox = new VBox(6);
                 Label bookTitle = new Label(item.getBook().getTitle());
-                bookTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+                bookTitle.setStyle("-fx-font-weight: 600; -fx-font-size: 17px;");
                 
-                Label priceLabel = new Label("Price: $" + String.format("%.2f", item.getPriceAtPurchase()) +
-                        " x " + item.getQuantity() + " = $" + String.format("%.2f", item.getSubtotal()));
+                Label authorLabel = new Label("by " + item.getBook().getAuthor());
+                authorLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 15px;");
                 
-                infoBox.getChildren().addAll(bookTitle, priceLabel);
+                Label priceLabel = new Label("$" + String.format("%.2f", item.getPriceAtPurchase()) + " each");
+                priceLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 15px;");
+                
+                infoBox.getChildren().addAll(bookTitle, authorLabel, priceLabel);
                 HBox.setHgrow(infoBox, Priority.ALWAYS);
 
                 // Controls
-                HBox controls = new HBox(10);
+                HBox controls = new HBox(12);
                 controls.setAlignment(Pos.CENTER_RIGHT);
 
-                Spinner<Integer> qtySpinner = new Spinner<>(1, item.getBook().getStock(), item.getQuantity());
+                Label qtyLabel = new Label("Qty");
+                qtyLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 13px;");
+
+                // Ensure max is at least equal to current quantity to avoid spinner issues
+                int maxQty = Math.max(item.getBook().getStock(), item.getQuantity());
+                Spinner<Integer> qtySpinner = new Spinner<>(1, maxQty, item.getQuantity());
                 qtySpinner.setPrefWidth(80);
+                qtySpinner.setPrefHeight(36);
 
                 Button updateBtn = new Button("Update");
+                updateBtn.setPrefHeight(36);
                 updateBtn.setOnAction(e -> {
                     facade.updateCartQuantity(customer, item.getBook().getId(), qtySpinner.getValue());
-                    container.getChildren().clear();
-                    container.getChildren().addAll(createCartPanel(customer).getContent());
+                    mainContainer.setCenter(createCartPanel(customer));
                 });
+
+                Label subtotalLabel = new Label("$" + String.format("%.2f", item.getSubtotal()));
+                subtotalLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 20px; -fx-text-fill: #1d1d1f; -fx-min-width: 80; -fx-alignment: center-right;");
 
                 Button removeBtn = new Button("Remove");
                 removeBtn.getStyleClass().add("btn-danger");
+                removeBtn.setPrefHeight(36);
                 removeBtn.setOnAction(e -> {
                     facade.removeFromCart(customer, item.getBook().getId());
-                    container.getChildren().clear();
-                    container.getChildren().addAll(createCartPanel(customer).getContent());
+                    mainContainer.setCenter(createCartPanel(customer));
                 });
 
-                controls.getChildren().addAll(new Label("Qty:"), qtySpinner, updateBtn, removeBtn);
+                controls.getChildren().addAll(qtyLabel, qtySpinner, updateBtn, subtotalLabel, removeBtn);
 
                 itemBox.getChildren().addAll(infoBox, controls);
                 cartItems.getChildren().add(itemBox);
@@ -656,121 +773,174 @@ public class OnlineBookStoreFX extends Application {
         }
 
         // Total and checkout
-        HBox bottomBox = new HBox(20);
+        HBox bottomBox = new HBox(16);
         bottomBox.setAlignment(Pos.CENTER_RIGHT);
-        bottomBox.setPadding(new Insets(20, 0, 0, 0));
+        bottomBox.setPadding(new Insets(24, 0, 0, 0));
 
-        Label totalLabel = new Label("Total: $" + String.format("%.2f", facade.getCartTotal(customer)));
-        totalLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
-
-        Button clearBtn = new Button("Clear Cart");
-        clearBtn.getStyleClass().add("btn-danger");
-        clearBtn.setOnAction(e -> {
-            facade.clearCart(customer);
-            container.getChildren().clear();
-            container.getChildren().addAll(createCartPanel(customer).getContent());
-        });
-
-        Button checkoutBtn = new Button("Checkout");
-        checkoutBtn.getStyleClass().add("btn-success");
-        checkoutBtn.setOnAction(e -> {
-            if (customer.getCart().isEmpty()) {
-                showAlert("Error", "Cart is empty!", Alert.AlertType.ERROR);
-                return;
-            }
-
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Checkout");
-            confirm.setHeaderText("Proceed to checkout?");
-            confirm.setContentText("Total: $" + facade.getCartTotal(customer));
-
-            confirm.showAndWait().ifPresent(response -> {
-                if (response == ButtonType.OK) {
-                    try {
-                        Order order = facade.placeOrder(customer);
-                        showAlert("Success", "Order placed successfully!\nOrder ID: " + order.getOrderId(), 
-                                Alert.AlertType.INFORMATION);
-                        container.getChildren().clear();
-                        container.getChildren().addAll(createCartPanel(customer).getContent());
-                    } catch (IllegalStateException ex) {
-                        showAlert("Error", ex.getMessage(), Alert.AlertType.ERROR);
-                    }
-                }
+        if (!items.isEmpty()) {
+            Button clearBtn = new Button("Clear Cart");
+            clearBtn.getStyleClass().add("btn-danger");
+            clearBtn.setPrefHeight(44);
+            clearBtn.setOnAction(e -> {
+                facade.clearCart(customer);
+                mainContainer.setCenter(createCartPanel(customer));
             });
-        });
 
-        bottomBox.getChildren().addAll(totalLabel, clearBtn, checkoutBtn);
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Label totalLabel = new Label("Total: $" + String.format("%.2f", facade.getCartTotal(customer)));
+            totalLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: 600; -fx-text-fill: #1d1d1f;");
+
+            Button checkoutBtn = new Button("Checkout");
+            checkoutBtn.getStyleClass().add("btn-success");
+            checkoutBtn.setPrefWidth(200);
+            checkoutBtn.setPrefHeight(44);
+            checkoutBtn.setOnAction(e -> {
+                if (customer.getCart().isEmpty()) {
+                    showAlert("Empty Cart", "Your cart is empty", Alert.AlertType.ERROR);
+                    return;
+                }
+
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Checkout");
+                confirm.setHeaderText("Complete your purchase?");
+                confirm.setContentText("Total: $" + facade.getCartTotal(customer));
+
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        try {
+                            Order order = facade.placeOrder(customer);
+                            showAlert("Order Placed", "Order #" + order.getOrderId() + " has been placed successfully", 
+                                    Alert.AlertType.INFORMATION);
+                            mainContainer.setCenter(createCartPanel(customer));
+                        } catch (IllegalStateException ex) {
+                            showAlert("Error", ex.getMessage(), Alert.AlertType.ERROR);
+                        }
+                    }
+                });
+            });
+
+            bottomBox.getChildren().addAll(clearBtn, spacer, totalLabel, checkoutBtn);
+        }
 
         container.getChildren().addAll(titleLabel, cartItems, bottomBox);
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
     private ScrollPane createOrdersPanel(Customer customer) {
-        VBox container = new VBox(15);
-        container.setPadding(new Insets(20));
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
+        container.setStyle("-fx-background-color: #fafafa;");
 
-        Label titleLabel = new Label("My Orders");
+        Label titleLabel = new Label("Order History");
         titleLabel.getStyleClass().add("title-label");
 
-        VBox ordersList = new VBox(15);
+        VBox ordersList = new VBox(16);
         List<Order> orders = facade.getCustomerOrderHistory(customer);
 
         if (orders.isEmpty()) {
+            VBox emptyBox = new VBox(16);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(60));
+            emptyBox.getStyleClass().add("card");
+            
             Label emptyLabel = new Label("No orders yet");
-            emptyLabel.setStyle("-fx-font-size: 16px; -fx-font-style: italic; -fx-text-fill: #7f8c8d;");
-            ordersList.getChildren().add(emptyLabel);
+            emptyLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 600; -fx-text-fill: #86868b;");
+            
+            Label emptySubLabel = new Label("Your order history will appear here");
+            emptySubLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #86868b;");
+            
+            emptyBox.getChildren().addAll(emptyLabel, emptySubLabel);
+            ordersList.getChildren().add(emptyBox);
         } else {
             for (Order order : orders) {
-                VBox orderBox = new VBox(10);
-                orderBox.getStyleClass().add("card");
-                orderBox.setPadding(new Insets(15));
+                VBox orderCard = new VBox(16);
+                orderCard.getStyleClass().add("card");
+                orderCard.setPadding(new Insets(20));
 
-                Label orderHeader = new Label("Order ID: " + order.getOrderId());
-                orderHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
-
-                Label statusLabel = new Label("Status: " + order.getStatus());
+                // Header row
+                HBox headerRow = new HBox(20);
+                headerRow.setAlignment(Pos.CENTER_LEFT);
+                
+                Label orderIdLabel = new Label("Order #" + order.getOrderId());
+                orderIdLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 17px;");
+                
+                Label statusLabel = new Label(order.getStatus());
                 statusLabel.getStyleClass().add("status-" + order.getStatus().toLowerCase());
+                statusLabel.setStyle(statusLabel.getStyle() + "; -fx-padding: 6 12; -fx-background-color: " + 
+                    (order.getStatus().equals("PENDING") ? "#fff3cd" :
+                     order.getStatus().equals("CONFIRMED") ? "#cfe2ff" :
+                     order.getStatus().equals("SHIPPED") ? "#d1e7dd" :
+                     order.getStatus().equals("CANCELLED") ? "#f8d7da" : "#d1e7dd") + 
+                    "; -fx-background-radius: 6;");
+                
+                Region spacer1 = new Region();
+                HBox.setHgrow(spacer1, Priority.ALWAYS);
+                
+                Label dateLabel = new Label(order.getOrderDate().toString());
+                dateLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #86868b;");
+                
+                Label totalLabel = new Label("$" + String.format("%.2f", order.getTotalAmount()));
+                totalLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 20px;");
+                
+                headerRow.getChildren().addAll(orderIdLabel, statusLabel, spacer1, dateLabel, totalLabel);
 
-                Label dateLabel = new Label("Date: " + order.getOrderDate());
-                Label totalLabel = new Label("Total: $" + String.format("%.2f", order.getTotalAmount()));
-                totalLabel.setStyle("-fx-font-weight: bold;");
-
-                VBox itemsBox = new VBox(5);
-                Label itemsHeader = new Label("Items:");
-                itemsHeader.setStyle("-fx-font-weight: bold;");
-                itemsBox.getChildren().add(itemsHeader);
-
+                // Items
+                VBox itemsBox = new VBox(8);
                 for (OrderItem item : order.getItems()) {
-                    Label itemLabel = new Label("  • " + item.toString());
-                    itemsBox.getChildren().add(itemLabel);
+                    HBox itemRow = new HBox(12);
+                    itemRow.setAlignment(Pos.CENTER_LEFT);
+                    itemRow.setStyle("-fx-background-color: #fafafa; -fx-padding: 12; -fx-background-radius: 8;");
+                    
+                    Label itemLabel = new Label(item.getBook().getTitle());
+                    itemLabel.setStyle("-fx-font-size: 15px;");
+                    
+                    Region spacer2 = new Region();
+                    HBox.setHgrow(spacer2, Priority.ALWAYS);
+                    
+                    Label qtyLabel = new Label("×" + item.getQuantity());
+                    qtyLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 15px;");
+                    
+                    Label itemPrice = new Label("$" + String.format("%.2f", item.getSubtotal()));
+                    itemPrice.setStyle("-fx-font-weight: 500; -fx-font-size: 15px;");
+                    
+                    itemRow.getChildren().addAll(itemLabel, spacer2, qtyLabel, itemPrice);
+                    itemsBox.getChildren().add(itemRow);
                 }
 
-                orderBox.getChildren().addAll(orderHeader, statusLabel, dateLabel, totalLabel, itemsBox);
+                orderCard.getChildren().addAll(headerRow, itemsBox);
 
+                // Cancel button if pending
                 if (order.getStatus().equals("PENDING")) {
+                    HBox actionRow = new HBox();
+                    actionRow.setAlignment(Pos.CENTER_RIGHT);
+                    actionRow.setPadding(new Insets(8, 0, 0, 0));
+                    
                     Button cancelBtn = new Button("Cancel Order");
                     cancelBtn.getStyleClass().add("btn-danger");
+                    cancelBtn.setPrefHeight(36);
                     cancelBtn.setOnAction(e -> {
                         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
                         confirm.setTitle("Cancel Order");
                         confirm.setHeaderText("Cancel this order?");
+                        confirm.setContentText("Order #" + order.getOrderId());
                         confirm.showAndWait().ifPresent(response -> {
                             if (response == ButtonType.OK) {
                                 facade.cancelOrder(customer, order.getOrderId());
-                                // Refresh the entire orders tab
-                                TabPane tabPane = (TabPane) mainContainer.getCenter();
-                                Tab ordersTab = tabPane.getTabs().get(2); // My Orders is the 3rd tab
-                                ordersTab.setContent(createOrdersPanel(customer));
+                                mainContainer.setCenter(createOrdersPanel(customer));
                             }
                         });
                     });
-                    orderBox.getChildren().add(cancelBtn);
+                    actionRow.getChildren().add(cancelBtn);
+                    orderCard.getChildren().add(actionRow);
                 }
 
-                ordersList.getChildren().add(orderBox);
+                ordersList.getChildren().add(orderCard);
             }
         }
 
@@ -778,61 +948,74 @@ public class OnlineBookStoreFX extends Application {
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
     private ScrollPane createAccountPanel(Customer customer) {
-        VBox container = new VBox(20);
-        container.setPadding(new Insets(40));
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
         container.setAlignment(Pos.TOP_CENTER);
-        container.setMaxWidth(600);
+        container.setStyle("-fx-background-color: #fafafa;");
 
-        Label titleLabel = new Label("Account Information");
+        Label titleLabel = new Label("Account Settings");
         titleLabel.getStyleClass().add("title-label");
 
-        VBox formBox = new VBox(15);
+        VBox formBox = new VBox(20);
         formBox.getStyleClass().add("card");
-        formBox.setPadding(new Insets(30));
+        formBox.setPadding(new Insets(32));
+        formBox.setMaxWidth(600);
 
-        Label usernameLabel = new Label("Username:");
+        GridPane grid = new GridPane();
+        grid.setHgap(16);
+        grid.setVgap(20);
+
+        Label usernameLabel = new Label("Username");
         usernameLabel.getStyleClass().add("field-label");
         Label usernameValue = new Label(customer.getUsername());
-        usernameValue.setStyle("-fx-font-size: 16px;");
+        usernameValue.setStyle("-fx-font-size: 17px;");
 
-        Label addressLabel = new Label("Address:");
+        Label addressLabel = new Label("Address");
         addressLabel.getStyleClass().add("field-label");
         TextField addressField = new TextField(customer.getAddress());
+        addressField.setPrefHeight(40);
 
-        Label phoneLabel = new Label("Phone:");
+        Label phoneLabel = new Label("Phone");
         phoneLabel.getStyleClass().add("field-label");
         TextField phoneField = new TextField(customer.getPhone());
+        phoneField.setPrefHeight(40);
 
-        Button updateBtn = new Button("Update Information");
+        int row = 0;
+        grid.add(usernameLabel, 0, row++);
+        grid.add(usernameValue, 0, row++);
+        grid.add(addressLabel, 0, row++);
+        grid.add(addressField, 0, row++);
+        grid.add(phoneLabel, 0, row++);
+        grid.add(phoneField, 0, row++);
+
+        Button updateBtn = new Button("Save Changes");
         updateBtn.getStyleClass().add("btn-primary");
+        updateBtn.setPrefHeight(44);
+        updateBtn.setMaxWidth(Double.MAX_VALUE);
         updateBtn.setOnAction(e -> {
             facade.updateCustomerInfo(customer, addressField.getText(), phoneField.getText());
-            showAlert("Success", "Information updated successfully!", Alert.AlertType.INFORMATION);
+            showAlert("Success", "Your information has been updated", Alert.AlertType.INFORMATION);
         });
 
-        formBox.getChildren().addAll(
-            usernameLabel, usernameValue,
-            new Separator(),
-            addressLabel, addressField,
-            phoneLabel, phoneField,
-            updateBtn
-        );
-
+        formBox.getChildren().addAll(grid, updateBtn);
         container.getChildren().addAll(titleLabel, formBox);
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
     // Admin panels
     private ScrollPane createManageBooksPanel() {
-        VBox container = new VBox(15);
-        container.setPadding(new Insets(20));
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
+        container.setStyle("-fx-background-color: #fafafa;");
 
         HBox headerBox = new HBox(20);
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -843,17 +1026,19 @@ public class OnlineBookStoreFX extends Application {
 
         Button addBookBtn = new Button("Add New Book");
         addBookBtn.getStyleClass().add("btn-success");
+        addBookBtn.setPrefHeight(40);
         addBookBtn.setOnAction(e -> showAddBookDialog(container));
 
         headerBox.getChildren().addAll(titleLabel, addBookBtn);
 
-        VBox booksList = new VBox(10);
+        VBox booksList = new VBox(12);
         updateBooksListAdmin(booksList, container);
 
         container.getChildren().addAll(headerBox, booksList);
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
@@ -865,20 +1050,18 @@ public class OnlineBookStoreFX extends Application {
             HBox bookBox = new HBox(20);
             bookBox.getStyleClass().add("card");
             bookBox.setAlignment(Pos.CENTER_LEFT);
-            bookBox.setPadding(new Insets(15));
+            bookBox.setPadding(new Insets(16));
 
-            VBox infoBox = new VBox(5);
+            VBox infoBox = new VBox(6);
             
             HBox titleBox = new HBox(10);
             titleBox.setAlignment(Pos.CENTER_LEFT);
             
-            Label titleLabel = new Label(book.getTitle() + " by " + book.getAuthor());
-            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-            titleBox.getChildren().add(titleLabel);
+            Label titleLabel = new Label(book.getTitle());
+            titleLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 17px;");
             
-            // Show decorator badges
             if (book.isFeatured()) {
-                Label featuredBadge = new Label("⭐ FEATURED");
+                Label featuredBadge = new Label("FEATURED");
                 featuredBadge.getStyleClass().add("featured-badge");
                 titleBox.getChildren().add(featuredBadge);
             }
@@ -889,13 +1072,16 @@ public class OnlineBookStoreFX extends Application {
                 titleBox.getChildren().add(discountBadge);
             }
             
-            String priceDisplay = "Price: $" + String.format("%.2f", book.getPrice());
+            titleBox.getChildren().add(0, titleLabel);
+            
+            String priceDisplay = "$" + String.format("%.2f", book.getPrice());
             if (book.isDiscounted()) {
-                priceDisplay += " (Original: $" + String.format("%.2f", book.getOriginalPrice()) + ")";
+                priceDisplay += " (was $" + String.format("%.2f", book.getOriginalPrice()) + ")";
             }
             
-            Label detailsLabel = new Label(priceDisplay +
-                    " | Category: " + book.getCategory() + " | Stock: " + book.getStock());
+            Label detailsLabel = new Label("by " + book.getAuthor() + " • " + priceDisplay + 
+                    " • " + book.getCategory() + " • Stock: " + book.getStock());
+            detailsLabel.setStyle("-fx-text-fill: #86868b; -fx-font-size: 15px;");
             
             infoBox.getChildren().addAll(titleBox, detailsLabel);
             HBox.setHgrow(infoBox, Priority.ALWAYS);
@@ -905,14 +1091,17 @@ public class OnlineBookStoreFX extends Application {
 
             Button editBtn = new Button("Edit");
             editBtn.getStyleClass().add("btn-primary");
+            editBtn.setPrefHeight(36);
             editBtn.setOnAction(e -> showEditBookDialog(book, booksList, container));
 
             Button deleteBtn = new Button("Delete");
             deleteBtn.getStyleClass().add("btn-danger");
+            deleteBtn.setPrefHeight(36);
             deleteBtn.setOnAction(e -> {
                 Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
                 confirm.setTitle("Delete Book");
-                confirm.setHeaderText("Delete: " + book.getTitle() + "?");
+                confirm.setHeaderText("Delete this book?");
+                confirm.setContentText(book.getTitle());
                 confirm.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         facade.deleteBook(book.getId());
@@ -933,9 +1122,9 @@ public class OnlineBookStoreFX extends Application {
         dialog.setHeaderText("Enter book details");
 
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
+        grid.setHgap(12);
+        grid.setVgap(16);
+        grid.setPadding(new Insets(24));
 
         TextField idField = new TextField();
         TextField titleField = new TextField();
@@ -946,8 +1135,9 @@ public class OnlineBookStoreFX extends Application {
         TextField stockField = new TextField();
         TextField editionField = new TextField();
         TextField coverField = new TextField("default.jpg");
-        final File[] selectedImageFile = new File[1]; // Store the selected file
-        Button uploadImageBtn = new Button("Upload Image...");
+        final File[] selectedImageFile = new File[1];
+        
+        Button uploadImageBtn = new Button("Choose File...");
         uploadImageBtn.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Book Cover Image");
@@ -956,10 +1146,11 @@ public class OnlineBookStoreFX extends Application {
             );
             File selectedFile = fileChooser.showOpenDialog(dialog.getOwner());
             if (selectedFile != null) {
-                selectedImageFile[0] = selectedFile; // Store full path
-                coverField.setText(selectedFile.getName()); // Display only filename
+                selectedImageFile[0] = selectedFile;
+                coverField.setText(selectedFile.getName());
             }
         });
+        
         HBox coverBox = new HBox(10, coverField, uploadImageBtn);
         CheckBox featuredCheck = new CheckBox("Featured");
         CheckBox discountCheck = new CheckBox("Discounted");
@@ -969,25 +1160,25 @@ public class OnlineBookStoreFX extends Application {
         discountCheck.setOnAction(e -> discountField.setDisable(!discountCheck.isSelected()));
 
         int row = 0;
-        grid.add(new Label("Book ID:"), 0, row);
+        grid.add(new Label("Book ID"), 0, row);
         grid.add(idField, 1, row++);
-        grid.add(new Label("Title:"), 0, row);
+        grid.add(new Label("Title"), 0, row);
         grid.add(titleField, 1, row++);
-        grid.add(new Label("Author:"), 0, row);
+        grid.add(new Label("Author"), 0, row);
         grid.add(authorField, 1, row++);
-        grid.add(new Label("Price:"), 0, row);
+        grid.add(new Label("Price"), 0, row);
         grid.add(priceField, 1, row++);
-        grid.add(new Label("Category:"), 0, row);
+        grid.add(new Label("Category"), 0, row);
         grid.add(categoryCombo, 1, row++);
-        grid.add(new Label("Stock:"), 0, row);
+        grid.add(new Label("Stock"), 0, row);
         grid.add(stockField, 1, row++);
-        grid.add(new Label("Edition:"), 0, row);
+        grid.add(new Label("Edition"), 0, row);
         grid.add(editionField, 1, row++);
-        grid.add(new Label("Cover Image:"), 0, row);
+        grid.add(new Label("Cover Image"), 0, row);
         grid.add(coverBox, 1, row++);
         grid.add(featuredCheck, 0, row);
         grid.add(discountCheck, 1, row++);
-        grid.add(new Label("Discount %:"), 0, row);
+        grid.add(new Label("Discount %"), 0, row);
         grid.add(discountField, 1, row++);
 
         dialog.getDialogPane().setContent(grid);
@@ -996,13 +1187,13 @@ public class OnlineBookStoreFX extends Application {
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    // Handle image upload
                     String coverImageName = coverField.getText();
                     if (selectedImageFile[0] != null) {
                         copyImageToDataDirectory(selectedImageFile[0]);
                     }
                     
-                    BasicBook book = new BasicBook(
+                    // Create base book
+                    Book book = new BasicBook(
                         idField.getText(),
                         titleField.getText(),
                         authorField.getText(),
@@ -1013,22 +1204,23 @@ public class OnlineBookStoreFX extends Application {
                         coverImageName
                     );
 
-                    // Set decorator properties directly on BasicBook
-                    book.setFeatured(featuredCheck.isSelected());
-                    
+                    // Apply decorators based on selections
                     if (discountCheck.isSelected()) {
                         double discount = Double.parseDouble(discountField.getText()) / 100.0;
-                        book.setDiscountPercentage(discount);
+                        book = new DiscountedBook(book, discount);
+                    }
+                    
+                    if (featuredCheck.isSelected()) {
+                        book = new FeaturedBook(book);
                     }
 
                     facade.addBookWithDecorators(book);
-                    showAlert("Success", "Book added successfully!", Alert.AlertType.INFORMATION);
+                    showAlert("Success", "Book added successfully", Alert.AlertType.INFORMATION);
                     
-                    // Refresh the books list
                     VBox booksList = (VBox) container.getChildren().get(1);
                     updateBooksListAdmin(booksList, container);
                 } catch (NumberFormatException ex) {
-                    showAlert("Error", "Invalid price, stock, or discount value!", Alert.AlertType.ERROR);
+                    showAlert("Error", "Invalid number format", Alert.AlertType.ERROR);
                 }
             }
         });
@@ -1040,11 +1232,10 @@ public class OnlineBookStoreFX extends Application {
         dialog.setHeaderText("Edit book details");
 
         GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
+        grid.setHgap(12);
+        grid.setVgap(16);
+        grid.setPadding(new Insets(24));
 
-        // Get base book to edit
         BasicBook baseBook = book.getBaseBook();
 
         TextField titleField = new TextField(baseBook.getTitle());
@@ -1056,8 +1247,9 @@ public class OnlineBookStoreFX extends Application {
         TextField stockField = new TextField(String.valueOf(baseBook.getStock()));
         TextField editionField = new TextField(baseBook.getEdition());
         TextField coverField = new TextField(baseBook.getCoverImage());
-        final File[] selectedImageFile = new File[1]; // Store the selected file
-        Button uploadImageBtn = new Button("Upload Image...");
+        final File[] selectedImageFile = new File[1];
+        
+        Button uploadImageBtn = new Button("Choose File...");
         uploadImageBtn.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Book Cover Image");
@@ -1066,10 +1258,11 @@ public class OnlineBookStoreFX extends Application {
             );
             File selectedFile = fileChooser.showOpenDialog(dialog.getOwner());
             if (selectedFile != null) {
-                selectedImageFile[0] = selectedFile; // Store full path
-                coverField.setText(selectedFile.getName()); // Display only filename
+                selectedImageFile[0] = selectedFile;
+                coverField.setText(selectedFile.getName());
             }
         });
+        
         HBox editCoverBox = new HBox(10, coverField, uploadImageBtn);
         CheckBox featuredCheck = new CheckBox("Featured");
         featuredCheck.setSelected(book.isFeatured());
@@ -1081,23 +1274,23 @@ public class OnlineBookStoreFX extends Application {
         discountCheck.setOnAction(e -> discountField.setDisable(!discountCheck.isSelected()));
 
         int row = 0;
-        grid.add(new Label("Title:"), 0, row);
+        grid.add(new Label("Title"), 0, row);
         grid.add(titleField, 1, row++);
-        grid.add(new Label("Author:"), 0, row);
+        grid.add(new Label("Author"), 0, row);
         grid.add(authorField, 1, row++);
-        grid.add(new Label("Price:"), 0, row);
+        grid.add(new Label("Price"), 0, row);
         grid.add(priceField, 1, row++);
-        grid.add(new Label("Category:"), 0, row);
+        grid.add(new Label("Category"), 0, row);
         grid.add(categoryCombo, 1, row++);
-        grid.add(new Label("Stock:"), 0, row);
+        grid.add(new Label("Stock"), 0, row);
         grid.add(stockField, 1, row++);
-        grid.add(new Label("Edition:"), 0, row);
+        grid.add(new Label("Edition"), 0, row);
         grid.add(editionField, 1, row++);
-        grid.add(new Label("Cover Image:"), 0, row);
+        grid.add(new Label("Cover Image"), 0, row);
         grid.add(editCoverBox, 1, row++);
         grid.add(featuredCheck, 0, row);
         grid.add(discountCheck, 1, row++);
-        grid.add(new Label("Discount %:"), 0, row);
+        grid.add(new Label("Discount %"), 0, row);
         grid.add(discountField, 1, row++);
 
         dialog.getDialogPane().setContent(grid);
@@ -1106,13 +1299,12 @@ public class OnlineBookStoreFX extends Application {
         dialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    // Handle image upload
                     String coverImageName = coverField.getText();
                     if (selectedImageFile[0] != null) {
                         copyImageToDataDirectory(selectedImageFile[0]);
                     }
                     
-                    // Update the base book fields
+                    // Update base book properties
                     baseBook.setTitle(titleField.getText());
                     baseBook.setAuthor(authorField.getText());
                     baseBook.setPrice(Double.parseDouble(priceField.getText()));
@@ -1120,27 +1312,35 @@ public class OnlineBookStoreFX extends Application {
                     baseBook.setStock(Integer.parseInt(stockField.getText()));
                     baseBook.setEdition(editionField.getText());
                     baseBook.setCoverImage(coverImageName);
-                    baseBook.setFeatured(featuredCheck.isSelected());
                     
+                    // Create new decorated book with updated settings
+                    Book updatedBook = baseBook;
+                    
+                    // Apply decorators based on selections
                     if (discountCheck.isSelected()) {
                         double discount = Double.parseDouble(discountField.getText()) / 100.0;
-                        baseBook.setDiscountPercentage(discount);
-                    } else {
-                        baseBook.setDiscountPercentage(0.0);
+                        updatedBook = new DiscountedBook(updatedBook, discount);
                     }
+                    
+                    if (featuredCheck.isSelected()) {
+                        updatedBook = new FeaturedBook(updatedBook);
+                    }
+                    
+                    facade.updateBook(updatedBook);
 
-                    showAlert("Success", "Book updated successfully!", Alert.AlertType.INFORMATION);
+                    showAlert("Success", "Book updated successfully", Alert.AlertType.INFORMATION);
                     updateBooksListAdmin(booksList, container);
                 } catch (NumberFormatException ex) {
-                    showAlert("Error", "Invalid price, stock, or discount value!", Alert.AlertType.ERROR);
+                    showAlert("Error", "Invalid number format", Alert.AlertType.ERROR);
                 }
             }
         });
     }
 
     private ScrollPane createManageOrdersPanel() {
-        VBox container = new VBox(15);
-        container.setPadding(new Insets(20));
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
+        container.setStyle("-fx-background-color: #fafafa;");
 
         HBox headerBox = new HBox(20);
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -1151,16 +1351,21 @@ public class OnlineBookStoreFX extends Application {
         ComboBox<String> filterCombo = new ComboBox<>();
         filterCombo.getItems().addAll("All Orders", "Pending", "Confirmed", "Shipped", "Cancelled");
         filterCombo.setValue("All Orders");
+        filterCombo.setPrefHeight(40);
 
         Button refreshBtn = new Button("Refresh");
+        refreshBtn.setPrefHeight(40);
         refreshBtn.setOnAction(e -> {
             VBox ordersList = (VBox) container.getChildren().get(1);
             updateOrdersListAdmin(ordersList, container, filterCombo.getValue());
         });
 
-        headerBox.getChildren().addAll(titleLabel, new Label("Filter:"), filterCombo, refreshBtn);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        VBox ordersList = new VBox(15);
+        headerBox.getChildren().addAll(titleLabel, spacer, new Label("Filter"), filterCombo, refreshBtn);
+
+        VBox ordersList = new VBox(12);
         filterCombo.setOnAction(e -> updateOrdersListAdmin(ordersList, container, filterCombo.getValue()));
         updateOrdersListAdmin(ordersList, container, "All Orders");
 
@@ -1168,6 +1373,7 @@ public class OnlineBookStoreFX extends Application {
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
@@ -1183,66 +1389,93 @@ public class OnlineBookStoreFX extends Application {
         }
 
         for (Order order : orders) {
-            VBox orderBox = new VBox(10);
+            VBox orderBox = new VBox(16);
             orderBox.getStyleClass().add("card");
-            orderBox.setPadding(new Insets(15));
+            orderBox.setPadding(new Insets(20));
 
-            Label orderHeader = new Label("Order ID: " + order.getOrderId());
-            orderHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+            HBox headerRow = new HBox(20);
+            headerRow.setAlignment(Pos.CENTER_LEFT);
+
+            Label orderIdLabel = new Label("Order #" + order.getOrderId());
+            orderIdLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 17px;");
 
             Label customerLabel = new Label("Customer: " + order.getCustomer().getUsername());
-            Label statusLabel = new Label("Status: " + order.getStatus());
+            customerLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #86868b;");
+
+            Label statusLabel = new Label(order.getStatus());
             statusLabel.getStyleClass().add("status-" + order.getStatus().toLowerCase());
+            statusLabel.setStyle(statusLabel.getStyle() + "; -fx-padding: 6 12; -fx-background-color: " + 
+                (order.getStatus().equals("PENDING") ? "#fff3cd" :
+                 order.getStatus().equals("CONFIRMED") ? "#cfe2ff" :
+                 order.getStatus().equals("SHIPPED") ? "#d1e7dd" :
+                 order.getStatus().equals("CANCELLED") ? "#f8d7da" : "#d1e7dd") + 
+                "; -fx-background-radius: 6;");
 
-            Label dateLabel = new Label("Date: " + order.getOrderDate());
-            Label totalLabel = new Label("Total: $" + String.format("%.2f", order.getTotalAmount()));
-            totalLabel.setStyle("-fx-font-weight: bold;");
+            Region spacer1 = new Region();
+            HBox.setHgrow(spacer1, Priority.ALWAYS);
 
-            VBox itemsBox = new VBox(5);
-            Label itemsHeader = new Label("Items:");
-            itemsHeader.setStyle("-fx-font-weight: bold;");
-            itemsBox.getChildren().add(itemsHeader);
+            Label dateLabel = new Label(order.getOrderDate().toString());
+            dateLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #86868b;");
 
+            Label totalLabel = new Label("$" + String.format("%.2f", order.getTotalAmount()));
+            totalLabel.setStyle("-fx-font-weight: 600; -fx-font-size: 20px;");
+
+            headerRow.getChildren().addAll(orderIdLabel, customerLabel, statusLabel, spacer1, dateLabel, totalLabel);
+
+            VBox itemsBox = new VBox(8);
             for (OrderItem item : order.getItems()) {
-                Label itemLabel = new Label("  • " + item.toString());
-                itemsBox.getChildren().add(itemLabel);
+                HBox itemRow = new HBox(12);
+                itemRow.setAlignment(Pos.CENTER_LEFT);
+                itemRow.setStyle("-fx-background-color: #fafafa; -fx-padding: 12; -fx-background-radius: 8;");
+                
+                Label itemLabel = new Label(item.toString());
+                itemLabel.setStyle("-fx-font-size: 15px;");
+                
+                itemRow.getChildren().add(itemLabel);
+                itemsBox.getChildren().add(itemRow);
             }
 
-            HBox actionsBox = new HBox(10);
-            actionsBox.setAlignment(Pos.CENTER_LEFT);
+            orderBox.getChildren().addAll(headerRow, itemsBox);
 
-            if (order.getStatus().equals("PENDING")) {
-                Button confirmBtn = new Button("Confirm");
-                confirmBtn.getStyleClass().add("btn-success");
-                confirmBtn.setOnAction(e -> {
-                    facade.confirmOrder(order.getOrderId());
-                    updateOrdersListAdmin(ordersList, container, filter);
-                });
+            if (!order.getStatus().equals("CANCELLED") && !order.getStatus().equals("DELIVERED")) {
+                HBox actionsBox = new HBox(10);
+                actionsBox.setAlignment(Pos.CENTER_RIGHT);
+                actionsBox.setPadding(new Insets(8, 0, 0, 0));
 
-                Button cancelBtn = new Button("Cancel");
-                cancelBtn.getStyleClass().add("btn-danger");
-                cancelBtn.setOnAction(e -> {
-                    facade.cancelOrderByAdmin(order.getOrderId());
-                    updateOrdersListAdmin(ordersList, container, filter);
-                });
+                if (order.getStatus().equals("PENDING")) {
+                    Button confirmBtn = new Button("Confirm");
+                    confirmBtn.getStyleClass().add("btn-success");
+                    confirmBtn.setPrefHeight(36);
+                    confirmBtn.setOnAction(e -> {
+                        facade.confirmOrder(order.getOrderId());
+                        updateOrdersListAdmin(ordersList, container, filter);
+                    });
 
-                actionsBox.getChildren().addAll(confirmBtn, cancelBtn);
-            }
+                    Button cancelBtn = new Button("Cancel");
+                    cancelBtn.getStyleClass().add("btn-danger");
+                    cancelBtn.setPrefHeight(36);
+                    cancelBtn.setOnAction(e -> {
+                        facade.cancelOrderByAdmin(order.getOrderId());
+                        updateOrdersListAdmin(ordersList, container, filter);
+                    });
 
-            if (order.getStatus().equals("CONFIRMED")) {
-                Button shipBtn = new Button("Mark as Shipped");
-                shipBtn.getStyleClass().add("btn-primary");
-                shipBtn.setOnAction(e -> {
-                    facade.shipOrder(order.getOrderId());
-                    updateOrdersListAdmin(ordersList, container, filter);
-                });
-                actionsBox.getChildren().add(shipBtn);
-            }
+                    actionsBox.getChildren().addAll(confirmBtn, cancelBtn);
+                }
 
-            orderBox.getChildren().addAll(orderHeader, customerLabel, statusLabel, dateLabel, totalLabel, itemsBox);
-            
-            if (!actionsBox.getChildren().isEmpty()) {
-                orderBox.getChildren().add(actionsBox);
+                if (order.getStatus().equals("CONFIRMED")) {
+                    Button shipBtn = new Button("Mark as Shipped");
+                    shipBtn.getStyleClass().add("btn-primary");
+                    shipBtn.setPrefHeight(36);
+                    shipBtn.setOnAction(e -> {
+                        facade.shipOrder(order.getOrderId());
+                        updateOrdersListAdmin(ordersList, container, filter);
+                    });
+                    actionsBox.getChildren().add(shipBtn);
+                }
+
+                if (!actionsBox.getChildren().isEmpty()) {
+                    orderBox.getChildren().add(actionsBox);
+                }
             }
 
             ordersList.getChildren().add(orderBox);
@@ -1250,83 +1483,233 @@ public class OnlineBookStoreFX extends Application {
     }
 
     private ScrollPane createStatisticsPanel() {
-        VBox container = new VBox(20);
-        container.setPadding(new Insets(30));
+        VBox container = new VBox(32);
+        container.setPadding(new Insets(40));
+        container.setStyle("-fx-background-color: #fafafa;");
 
-        Label titleLabel = new Label("Statistics");
-        titleLabel.getStyleClass().add("title-label");
-
-        VBox statsBox = new VBox(15);
-        statsBox.getStyleClass().add("card");
-        statsBox.setPadding(new Insets(25));
-
-        Label revenueLabel = new Label("Total Revenue: $" + 
-                String.format("%.2f", facade.getTotalRevenue()));
-        revenueLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #27ae60;");
-
-        Label ordersLabel = new Label("Total Orders: " + facade.getTotalOrdersCount());
-        ordersLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #3498db;");
-
-        Label topBooksLabel = new Label("Top 5 Selling Books:");
-        topBooksLabel.getStyleClass().add("subtitle-label");
-
-        VBox topBooksList = new VBox(5);
-        for (Book book : facade.getTopSellingBooks(5)) {
-            Label bookLabel = new Label("• " + book.getTitle() + " (Popularity: " + book.getPopularity() + ")");
-            topBooksList.getChildren().add(bookLabel);
-        }
-
-        Label categorySalesLabel = new Label("Sales by Category:");
-        categorySalesLabel.getStyleClass().add("subtitle-label");
-
-        VBox categorySalesList = new VBox(5);
-        for (java.util.Map.Entry<String, Integer> entry : facade.getCategorySalesStatistics().entrySet()) {
-            Label categoryLabel = new Label("• " + entry.getKey() + ": " + entry.getValue() + " books sold");
-            categorySalesList.getChildren().add(categoryLabel);
-        }
-
-        Button refreshBtn = new Button("Refresh Statistics");
+        // Header
+        HBox headerBox = new HBox(20);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label titleLabel = new Label("📊 Business Analytics");
+        titleLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1d1d1f;");
+        
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        
+        Button refreshBtn = new Button("🔄 Refresh");
         refreshBtn.getStyleClass().add("btn-primary");
+        refreshBtn.setPrefHeight(40);
         refreshBtn.setOnAction(e -> {
-            // Refresh only the statistics tab content
             TabPane tabPane = (TabPane) mainContainer.getCenter();
-            Tab statsTab = tabPane.getTabs().get(2); // Statistics is the 3rd tab
+            Tab statsTab = tabPane.getTabs().get(2);
             statsTab.setContent(createStatisticsPanel());
         });
+        
+        headerBox.getChildren().addAll(titleLabel, headerSpacer, refreshBtn);
 
-        statsBox.getChildren().addAll(
-            revenueLabel, ordersLabel,
-            new Separator(),
-            topBooksLabel, topBooksList,
-            new Separator(),
-            categorySalesLabel, categorySalesList,
-            new Separator(),
-            refreshBtn
-        );
+        // Key Metrics - 4 cards in a row
+        GridPane metricsGrid = new GridPane();
+        metricsGrid.setHgap(16);
+        metricsGrid.setVgap(16);
+        
+        // Revenue Card
+        VBox revenueCard = createMetricCard("💰", "Total Revenue", 
+            "$" + String.format("%.2f", facade.getTotalRevenue()), 
+            "From completed orders", "#0071e3");
+        
+        // Completed Orders Card
+        VBox completedCard = createMetricCard("✅", "Completed Orders", 
+            String.valueOf(facade.getCompletedOrdersCount()), 
+            "Confirmed & shipped", "#34c759");
+        
+        // Pending Orders Card
+        VBox pendingCard = createMetricCard("⏳", "Pending Orders", 
+            String.valueOf(facade.getPendingOrdersCount()), 
+            "Awaiting confirmation", "#ff9500");
+        
+        // Cancelled Orders Card
+        VBox cancelledCard = createMetricCard("❌", "Cancelled Orders", 
+            String.valueOf(facade.getCancelledOrdersCount()), 
+            "Not counted in revenue", "#ff3b30");
+        
+        metricsGrid.add(revenueCard, 0, 0);
+        metricsGrid.add(completedCard, 1, 0);
+        metricsGrid.add(pendingCard, 2, 0);
+        metricsGrid.add(cancelledCard, 3, 0);
 
-        container.getChildren().addAll(titleLabel, statsBox);
+        // Two columns layout for detailed stats
+        HBox detailsRow = new HBox(20);
+        
+        // Top Selling Books
+        VBox topBooksBox = new VBox(16);
+        topBooksBox.getStyleClass().add("card");
+        topBooksBox.setPadding(new Insets(24));
+        topBooksBox.setPrefWidth(550);
+        HBox.setHgrow(topBooksBox, Priority.ALWAYS);
+
+        Label topBooksLabel = new Label("🏆 Top Selling Books");
+        topBooksLabel.setStyle("-fx-font-weight: 700; -fx-font-size: 20px; -fx-text-fill: #1d1d1f;");
+
+        VBox topBooksList = new VBox(12);
+        List<Book> topBooks = facade.getTopSellingBooks(5);
+        
+        if (topBooks.isEmpty()) {
+            Label emptyLabel = new Label("No sales data available yet");
+            emptyLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #86868b; -fx-padding: 20 0;");
+            topBooksList.getChildren().add(emptyLabel);
+        } else {
+            int rank = 1;
+            for (Book book : topBooks) {
+                HBox bookRow = new HBox(16);
+                bookRow.setAlignment(Pos.CENTER_LEFT);
+                bookRow.setStyle("-fx-background-color: #f5f5f7; -fx-padding: 16; -fx-background-radius: 10;");
+                
+                // Rank badge
+                Label rankLabel = new Label(String.valueOf(rank++));
+                rankLabel.setStyle("-fx-font-weight: 700; -fx-font-size: 18px; -fx-text-fill: white; " +
+                    "-fx-background-color: #0071e3; -fx-background-radius: 20; " +
+                    "-fx-min-width: 36; -fx-min-height: 36; -fx-alignment: center;");
+                
+                VBox bookInfo = new VBox(4);
+                Label bookTitle = new Label(book.getTitle());
+                bookTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: 600;");
+                Label bookAuthor = new Label("by " + book.getAuthor());
+                bookAuthor.setStyle("-fx-font-size: 14px; -fx-text-fill: #86868b;");
+                bookInfo.getChildren().addAll(bookTitle, bookAuthor);
+                HBox.setHgrow(bookInfo, Priority.ALWAYS);
+                
+                VBox salesInfo = new VBox(4);
+                salesInfo.setAlignment(Pos.CENTER_RIGHT);
+                Label soldLabel = new Label(book.getPopularity() + " sold");
+                soldLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: #0071e3;");
+                Label priceLabel = new Label("$" + String.format("%.2f", book.getPrice()));
+                priceLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #86868b;");
+                salesInfo.getChildren().addAll(soldLabel, priceLabel);
+                
+                bookRow.getChildren().addAll(rankLabel, bookInfo, salesInfo);
+                topBooksList.getChildren().add(bookRow);
+            }
+        }
+
+        topBooksBox.getChildren().addAll(topBooksLabel, topBooksList);
+
+        // Category Sales
+        VBox categorySalesBox = new VBox(16);
+        categorySalesBox.getStyleClass().add("card");
+        categorySalesBox.setPadding(new Insets(24));
+        categorySalesBox.setPrefWidth(550);
+        HBox.setHgrow(categorySalesBox, Priority.ALWAYS);
+
+        Label categorySalesLabel = new Label("📚 Sales by Category");
+        categorySalesLabel.setStyle("-fx-font-weight: 700; -fx-font-size: 20px; -fx-text-fill: #1d1d1f;");
+
+        VBox categorySalesList = new VBox(12);
+        Map<String, Integer> categoryStats = facade.getCategorySalesStatistics();
+        
+        if (categoryStats.isEmpty()) {
+            Label emptyLabel = new Label("No category sales data available yet");
+            emptyLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #86868b; -fx-padding: 20 0;");
+            categorySalesList.getChildren().add(emptyLabel);
+        } else {
+            // Find max value for bar chart effect
+            int maxSales = categoryStats.values().stream().max(Integer::compareTo).orElse(1);
+            
+            for (java.util.Map.Entry<String, Integer> entry : categoryStats.entrySet()) {
+                VBox categoryRow = new VBox(8);
+                categoryRow.setStyle("-fx-background-color: #f5f5f7; -fx-padding: 16; -fx-background-radius: 10;");
+                
+                HBox headerRow = new HBox(12);
+                headerRow.setAlignment(Pos.CENTER_LEFT);
+                
+                Label categoryLabel = new Label(entry.getKey());
+                categoryLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: 600;");
+                
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                
+                Label salesLabel = new Label(entry.getValue() + " books sold");
+                salesLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #0071e3; -fx-font-weight: 600;");
+                
+                headerRow.getChildren().addAll(categoryLabel, spacer, salesLabel);
+                
+                // Progress bar
+                ProgressBar progressBar = new ProgressBar((double) entry.getValue() / maxSales);
+                progressBar.setMaxWidth(Double.MAX_VALUE);
+                progressBar.setPrefHeight(8);
+                progressBar.setStyle("-fx-accent: #0071e3;");
+                
+                categoryRow.getChildren().addAll(headerRow, progressBar);
+                categorySalesList.getChildren().add(categoryRow);
+            }
+        }
+
+        categorySalesBox.getChildren().addAll(categorySalesLabel, categorySalesList);
+        
+        detailsRow.getChildren().addAll(topBooksBox, categorySalesBox);
+
+        container.getChildren().addAll(headerBox, metricsGrid, detailsRow);
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
+    }
+    
+    private VBox createMetricCard(String icon, String label, String value, String subtitle, String color) {
+        VBox card = new VBox(12);
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(24));
+        card.setPrefWidth(250);
+        card.setStyle(card.getStyle() + "; -fx-background-color: white; -fx-border-color: " + color + 
+            "; -fx-border-width: 0 0 0 4;");
+        
+        HBox headerBox = new HBox(12);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label iconLabel = new Label(icon);
+        iconLabel.setStyle("-fx-font-size: 32px;");
+        
+        VBox textBox = new VBox(4);
+        Label titleLabel = new Label(label);
+        titleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #86868b; -fx-font-weight: 500;");
+        
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: " + color + ";");
+        
+        textBox.getChildren().addAll(titleLabel, valueLabel);
+        headerBox.getChildren().addAll(iconLabel, textBox);
+        
+        Label subtitleLabel = new Label(subtitle);
+        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #86868b;");
+        
+        card.getChildren().addAll(headerBox, subtitleLabel);
+        return card;
     }
 
     private ScrollPane createManageCategoriesPanel() {
-        VBox container = new VBox(15);
-        container.setPadding(new Insets(20));
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(32));
+        container.setStyle("-fx-background-color: #fafafa;");
 
         Label titleLabel = new Label("Manage Categories");
         titleLabel.getStyleClass().add("title-label");
 
-        HBox addCategoryBox = new HBox(15);
-        addCategoryBox.setAlignment(Pos.CENTER_LEFT);
+        VBox addCategoryBox = new VBox(12);
+        addCategoryBox.getStyleClass().add("card");
+        addCategoryBox.setPadding(new Insets(20));
+
+        HBox addRow = new HBox(12);
+        addRow.setAlignment(Pos.CENTER_LEFT);
 
         TextField newCategoryField = new TextField();
-        newCategoryField.setPromptText("New category name");
-        newCategoryField.setPrefWidth(250);
+        newCategoryField.setPromptText("Enter new category name");
+        newCategoryField.setPrefWidth(300);
+        newCategoryField.setPrefHeight(40);
 
         Button addBtn = new Button("Add Category");
         addBtn.getStyleClass().add("btn-success");
+        addBtn.setPrefHeight(40);
         addBtn.setOnAction(e -> {
             String newCategory = newCategoryField.getText().trim();
             if (!newCategory.isEmpty()) {
@@ -1334,11 +1717,12 @@ public class OnlineBookStoreFX extends Application {
                 newCategoryField.clear();
                 VBox categoriesList = (VBox) container.getChildren().get(2);
                 updateCategoriesList(categoriesList);
-                showAlert("Success", "Category added!", Alert.AlertType.INFORMATION);
+                showAlert("Success", "Category added successfully", Alert.AlertType.INFORMATION);
             }
         });
 
-        addCategoryBox.getChildren().addAll(new Label("New Category:"), newCategoryField, addBtn);
+        addRow.getChildren().addAll(newCategoryField, addBtn);
+        addCategoryBox.getChildren().add(addRow);
 
         VBox categoriesList = new VBox(10);
         updateCategoriesList(categoriesList);
@@ -1347,37 +1731,58 @@ public class OnlineBookStoreFX extends Application {
 
         ScrollPane scroll = new ScrollPane(container);
         scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: #fafafa;");
         return scroll;
     }
 
     private void updateCategoriesList(VBox categoriesList) {
         categoriesList.getChildren().clear();
-        for (String category : facade.getAllCategories()) {
-            Label categoryLabel = new Label("• " + category);
-            categoryLabel.setStyle("-fx-font-size: 16px; -fx-padding: 5 10;");
-            categoriesList.getChildren().add(categoryLabel);
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(12);
+        
+        List<String> categories = new java.util.ArrayList<>(facade.getAllCategories());
+        int col = 0;
+        int row = 0;
+        
+        for (String category : categories) {
+            VBox categoryCard = new VBox(8);
+            categoryCard.getStyleClass().add("card");
+            categoryCard.setPadding(new Insets(16));
+            categoryCard.setPrefWidth(200);
+            categoryCard.setAlignment(Pos.CENTER);
+            
+            Label categoryLabel = new Label(category);
+            categoryLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: 500;");
+            
+            categoryCard.getChildren().add(categoryLabel);
+            grid.add(categoryCard, col, row);
+            
+            col++;
+            if (col == 4) {
+                col = 0;
+                row++;
+            }
         }
+        
+        categoriesList.getChildren().add(grid);
     }
 
     private void copyImageToDataDirectory(File sourceFile) {
         try {
-            // Create images directory if it doesn't exist
             File imagesDir = new File("bookstore_data/images");
             if (!imagesDir.exists()) {
                 imagesDir.mkdirs();
             }
             
-            // Copy the file to the images directory
             if (sourceFile != null && sourceFile.exists()) {
                 File destFile = new File(imagesDir, sourceFile.getName());
                 Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 System.out.println("Image copied: " + sourceFile.getName());
-            } else {
-                System.err.println("Source file not found: " + (sourceFile != null ? sourceFile.getAbsolutePath() : "null"));
             }
         } catch (Exception e) {
             System.err.println("Error copying image: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

@@ -30,9 +30,12 @@ public class Order {
     public String getCustomerUsername() { return customerUsername; }
     
     // Helper method to get Customer object (used by GUI)
+    // Note: Customer should be provided by the calling context (via Facade)
+    // This creates a minimal Customer representation for display purposes
     public Customer getCustomer() {
-        // This will be resolved by BookStoreSystem
-        return BookStoreSystem.getInstance().getCustomerByUsername(customerUsername);
+        // Return a minimal customer representation with stored username
+        // The actual Customer object should be retrieved through the Facade layer
+        return new Customer(customerUsername, "", "", "");
     }
     
     public List<OrderItem> getItems() { return new ArrayList<>(items); }

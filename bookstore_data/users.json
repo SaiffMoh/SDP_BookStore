@@ -7,7 +7,7 @@
     "reviews": []
   },
   {
-    "username": "saif",
+    "username": "Saif",
     "password": "saif",
     "userType": "CUSTOMER",
     "address": "",
@@ -15,59 +15,30 @@
     "orderHistory": [
       {
         "orderId": "ORD1000",
-        "customerUsername": "saif",
+        "customerUsername": "Saif",
         "items": [
           {
-            "bookId": "B001",
-            "bookTitle": "Clean Code",
-            "quantity": 2,
-            "priceAtPurchase": 45.99
-          }
-        ],
-        "totalAmount": 91.98,
-        "status": "PENDING",
-        "orderDate": "2025-12-15T22:21:08.7080684"
-      },
-      {
-        "orderId": "ORD1001",
-        "customerUsername": "saif",
-        "items": [
-          {
-            "bookId": "1234",
-            "bookTitle": "q",
+            "bookId": "101",
+            "bookTitle": "Me",
+            "bookAuthor": "sdp",
+            "bookCategory": "Science",
             "quantity": 1,
-            "priceAtPurchase": 72.0
-          }
-        ],
-        "totalAmount": 72.0,
-        "status": "PENDING",
-        "orderDate": "2025-12-15T22:33:46.8123765"
-      },
-      {
-        "orderId": "ORD1002",
-        "customerUsername": "saif",
-        "items": [
+            "priceAtPurchase": 200.0
+          },
           {
-            "bookId": "12345",
-            "bookTitle": "Saif",
+            "bookId": "102",
+            "bookTitle": "B2",
+            "bookAuthor": "saif",
+            "bookCategory": "Classics",
             "quantity": 1,
-            "priceAtPurchase": 987.2
+            "priceAtPurchase": 500.0
           }
         ],
-        "totalAmount": 987.2,
-        "status": "CANCELLED",
-        "orderDate": "2025-12-16T23:14:38.6094986"
+        "totalAmount": 700.0,
+        "status": "SHIPPED",
+        "orderDate": "2025-12-17T23:08:15.559965"
       }
     ],
-    "reviews": []
-  },
-  {
-    "username": "saif",
-    "password": "saif",
-    "userType": "CUSTOMER",
-    "address": "a",
-    "phone": "121",
-    "orderHistory": [],
     "reviews": []
   }
 ]
